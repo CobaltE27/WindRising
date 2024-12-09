@@ -25,7 +25,11 @@ public class PlaneMovement : MonoBehaviour
     public float tailCoeff = 0f;
     public float tailBiasFactor = 0f;
     public float liftCoeff = 0f;
-    public float glideCoeff;
+    public float lAileronPos = 0f;
+    public float rAileronPos = 0f;
+    public float tailElevatorPos = 0f;
+	public float aileronStrength = 0f;
+	public float glideCoeff;
     public GameObject rightTip;
     public GameObject leftTip;
 	public Vector3 facing = Vector3.forward;
@@ -40,7 +44,9 @@ public class PlaneMovement : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        Debug.DrawLine(rb.position, rightTip.transform.position);
+        InterpretControls();
+
+		Debug.DrawLine(rb.position, rightTip.transform.position);
 		Debug.DrawLine(rb.position, leftTip.transform.position);
 
 		Vector3 vel = rb.velocity;
@@ -81,8 +87,10 @@ public class PlaneMovement : MonoBehaviour
 
         Vector3 colOffset = -0.2f * rb.transform.forward;
 		Vector3 rightLift = rb.transform.up * (Vector3.Dot(rb.transform.forward, -airDir) * (0.5f * wingAreaFactor) * liftCoeff * airSpeedSquared); //lift proportional to wing area, aerofoil lift coeff, and forward airspeed
+        rightLift += rb.transform.up * rAileronPos * airSpeedSquared * aileronStrength;
 		rb.AddForceAtPosition(rightLift, rightTip.transform.position + colOffset); //wing center of lift is generally behind
-		Vector3 leftLift = rb.transform.up * (Vector3.Dot(rb.transform.forward, -airDir) * (0.5f * wingAreaFactor) * liftCoeff * airSpeedSquared); 
+		Vector3 leftLift = rb.transform.up * (Vector3.Dot(rb.transform.forward, -airDir) * (0.5f * wingAreaFactor) * liftCoeff * airSpeedSquared);
+		leftLift += rb.transform.up * lAileronPos * airSpeedSquared * aileronStrength;
 		rb.AddForceAtPosition(leftLift, leftTip.transform.position + colOffset);
 		Debug.DrawRay(rightTip.transform.position, rightLift, Color.cyan);
 		Debug.DrawRay(leftTip.transform.position, leftLift, Color.cyan);
@@ -97,4 +105,24 @@ public class PlaneMovement : MonoBehaviour
 		Debug.DrawRay(rb.position, accum, Color.black);
 		rb.AddForce(accum);
     }
+
+    void InterpretControls()
+    {
+		float lTarget = 0f;
+		float rTarget = 0f;
+		if (Input.GetKey(KeyCode.A))
+        {
+            lTarget -= 0.5f;
+            rTarget += 0.5f;
+        }
+		if (Input.GetKey(KeyCode.D))
+		{
+			lTarget += 0.5f;
+			rTarget -= 0.5f;
+		}
+        lAileronPos = lAileronPos + (lTarget - lAileronPos) * 0.1f; //lerp toward target values
+        rAileronPos = rAileronPos + (rTarget - rAileronPos) * 0.1f;
+
+        //elevator control
+	}
 }
