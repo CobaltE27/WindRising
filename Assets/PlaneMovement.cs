@@ -29,6 +29,7 @@ public class PlaneMovement : MonoBehaviour
     public float rAileronPos = 0f;
     public float tailElevatorPos = 0f;
 	public float aileronStrength = 0f;
+	public float elevatorStrength = 0f;
 	public float glideCoeff;
     public GameObject rightTip;
     public GameObject leftTip;
@@ -56,6 +57,7 @@ public class PlaneMovement : MonoBehaviour
 		Debug.DrawRay(rb.position, airVel, Color.green);
 		Vector3 airDir = airVel.normalized;
         float airSpeedSquared = airVel.sqrMagnitude;
+        float forwardAirspeedSquared = Vector3.Dot(rb.transform.forward, -airDir) * airSpeedSquared;
 		Vector3 accum = rb.GetAccumulatedForce(); //initialize forces, should basically always be 0
         //Debug.Log(accum);
 
@@ -86,11 +88,11 @@ public class PlaneMovement : MonoBehaviour
 		Debug.DrawRay(rb.position, glideForce, Color.magenta);
 
         Vector3 colOffset = -0.2f * rb.transform.forward;
-		Vector3 rightLift = rb.transform.up * (Vector3.Dot(rb.transform.forward, -airDir) * (0.5f * wingAreaFactor) * liftCoeff * airSpeedSquared); //lift proportional to wing area, aerofoil lift coeff, and forward airspeed
-        rightLift += rb.transform.up * rAileronPos * airSpeedSquared * aileronStrength;
+		Vector3 rightLift = rb.transform.up * (forwardAirspeedSquared * (0.5f * wingAreaFactor) * liftCoeff); //lift proportional to wing area, aerofoil lift coeff, and forward airspeed
+        rightLift += rb.transform.up * rAileronPos * forwardAirspeedSquared * aileronStrength; //account for aileron lift
 		rb.AddForceAtPosition(rightLift, rightTip.transform.position + colOffset); //wing center of lift is generally behind
-		Vector3 leftLift = rb.transform.up * (Vector3.Dot(rb.transform.forward, -airDir) * (0.5f * wingAreaFactor) * liftCoeff * airSpeedSquared);
-		leftLift += rb.transform.up * lAileronPos * airSpeedSquared * aileronStrength;
+		Vector3 leftLift = rb.transform.up * (forwardAirspeedSquared * (0.5f * wingAreaFactor) * liftCoeff);
+		leftLift += rb.transform.up * lAileronPos * forwardAirspeedSquared * aileronStrength;
 		rb.AddForceAtPosition(leftLift, leftTip.transform.position + colOffset);
 		Debug.DrawRay(rightTip.transform.position, rightLift, Color.cyan);
 		Debug.DrawRay(leftTip.transform.position, leftLift, Color.cyan);
@@ -98,6 +100,7 @@ public class PlaneMovement : MonoBehaviour
 		Vector3 tailBias = -rb.transform.up * liftCoeff * tailBiasFactor * airSpeedSquared;
         Vector3 centeringDir = (airVel - (-rb.transform.forward * airVel.magnitude * (Vector3.Dot(airVel.normalized, -rb.transform.forward)))).normalized;
 		Vector3 centeringRotation = tailBias + centeringDir * airSpeedSquared * tailCoeff;
+        centeringRotation += rb.transform.up * forwardAirspeedSquared * tailElevatorPos * elevatorStrength;
         rb.AddForceAtPosition(centeringRotation, rb.position - 5 * rb.transform.forward); //added on the back of the craft like force from tail/rudder, just removing actual backward drag component
         Debug.DrawRay(rb.position - 5 * rb.transform.forward, centeringRotation);
 		Debug.DrawRay(rb.position, -5 * rb.transform.forward);
@@ -106,8 +109,10 @@ public class PlaneMovement : MonoBehaviour
 		rb.AddForce(accum);
     }
 
-    void InterpretControls()
+    void InterpretControls() //Use WASD to control elevator and ailerons
     {
+        //targets are in terms of upward force applied to part of craft, not actual angle of flaps
+        //aileron control
 		float lTarget = 0f;
 		float rTarget = 0f;
 		if (Input.GetKey(KeyCode.A))
@@ -122,7 +127,16 @@ public class PlaneMovement : MonoBehaviour
 		}
         lAileronPos = lAileronPos + (lTarget - lAileronPos) * 0.1f; //lerp toward target values
         rAileronPos = rAileronPos + (rTarget - rAileronPos) * 0.1f;
-
         //elevator control
+        float eTarget = 0f;
+		if (Input.GetKey(KeyCode.W))
+		{
+            eTarget += 0.5f;
+		}
+		if (Input.GetKey(KeyCode.S))
+		{
+			eTarget -= 0.5f;
+		}
+		tailElevatorPos = tailElevatorPos + (eTarget - tailElevatorPos) * 0.1f;
 	}
 }
