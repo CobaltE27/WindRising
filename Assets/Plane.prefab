@@ -211,7 +211,7 @@ MonoBehaviour:
   rAileronPos: 0
   tailElevatorPos: 0
   aileronStrength: 0.0002
-  elevatorStrength: 0.0002
+  elevatorStrength: 0.0004
   glideCoeff: 0.5
   rightTip: {fileID: 3492054752230983004}
   leftTip: {fileID: 282077014559468604}

@@ -97,9 +97,9 @@ public class PlaneMovement : MonoBehaviour
 		Debug.DrawRay(rightTip.transform.position, rightLift, Color.cyan);
 		Debug.DrawRay(leftTip.transform.position, leftLift, Color.cyan);
 
-		Vector3 tailBias = -rb.transform.up * liftCoeff * tailBiasFactor * airSpeedSquared;
+		Vector3 tailBias = -rb.transform.up * liftCoeff * tailBiasFactor * forwardAirspeedSquared;
         Vector3 centeringDir = (airVel - (-rb.transform.forward * airVel.magnitude * (Vector3.Dot(airVel.normalized, -rb.transform.forward)))).normalized;
-		Vector3 centeringRotation = tailBias + centeringDir * airSpeedSquared * tailCoeff;
+		Vector3 centeringRotation = tailBias + centeringDir * forwardAirspeedSquared * tailCoeff;
         centeringRotation += rb.transform.up * forwardAirspeedSquared * tailElevatorPos * elevatorStrength;
         rb.AddForceAtPosition(centeringRotation, rb.position - 5 * rb.transform.forward); //added on the back of the craft like force from tail/rudder, just removing actual backward drag component
         Debug.DrawRay(rb.position - 5 * rb.transform.forward, centeringRotation);
