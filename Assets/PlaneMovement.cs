@@ -30,6 +30,7 @@ public class PlaneMovement : MonoBehaviour
     public float tailElevatorPos = 0f;
 	public float aileronStrength = 0f;
 	public float elevatorStrength = 0f;
+    public float controlDragCoeff;
 	public float glideCoeff;
     public GameObject rightTip;
     public GameObject leftTip;
@@ -87,15 +88,19 @@ public class PlaneMovement : MonoBehaviour
 		accum += glideForce;
 		Debug.DrawRay(rb.position, glideForce, Color.magenta);
 
-        Vector3 colOffset = -0.2f * rb.transform.forward;
+        Vector3 wingOffset = -0.2f * rb.transform.forward;
 		Vector3 rightLift = rb.transform.up * (forwardAirspeedSquared * (0.5f * wingAreaFactor) * liftCoeff); //lift proportional to wing area, aerofoil lift coeff, and forward airspeed
-        rightLift += rb.transform.up * rAileronPos * forwardAirspeedSquared * aileronStrength; //account for aileron lift
-		rb.AddForceAtPosition(rightLift, rightTip.transform.position + colOffset); //wing center of lift is generally behind
+        float rAileronForce = rAileronPos * forwardAirspeedSquared * aileronStrength; //account for aileron lift
+		rightLift += rb.transform.up * rAileronForce; 
+		rb.AddForceAtPosition(rightLift, rightTip.transform.position + wingOffset); //wing center of lift is generally behind
 		Vector3 leftLift = rb.transform.up * (forwardAirspeedSquared * (0.5f * wingAreaFactor) * liftCoeff);
-		leftLift += rb.transform.up * lAileronPos * forwardAirspeedSquared * aileronStrength;
-		rb.AddForceAtPosition(leftLift, leftTip.transform.position + colOffset);
+		float lAileronForce = lAileronPos * forwardAirspeedSquared * aileronStrength;
+		leftLift += rb.transform.up * lAileronForce;
+		rb.AddForceAtPosition(leftLift, leftTip.transform.position + wingOffset);
 		Debug.DrawRay(rightTip.transform.position, rightLift, Color.cyan);
 		Debug.DrawRay(leftTip.transform.position, leftLift, Color.cyan);
+        rb.AddForceAtPosition(-rb.transform.forward * rAileronForce * controlDragCoeff, rightTip.transform.position + wingOffset);
+        rb.AddForceAtPosition(-rb.transform.forward * lAileronForce * controlDragCoeff, leftTip.transform.position + wingOffset);
 
 		Vector3 tailBias = -rb.transform.up * liftCoeff * tailBiasFactor * forwardAirspeedSquared;
         Vector3 centeringDir = (airVel - (-rb.transform.forward * airVel.magnitude * (Vector3.Dot(airVel.normalized, -rb.transform.forward)))).normalized;

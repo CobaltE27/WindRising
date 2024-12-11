@@ -357,6 +357,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -10
       objectReference: {fileID: 0}
+    - target: {fileID: 2135527206325520807, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
+      propertyPath: elevatorStrength
+      value: 0.0008
+      objectReference: {fileID: 0}
     - target: {fileID: 3908729247863725499, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
       propertyPath: m_Name
       value: Plane
