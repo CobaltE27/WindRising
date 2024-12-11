@@ -35,7 +35,7 @@ public class PlaneMovement : MonoBehaviour
     public GameObject rightTip;
     public GameObject leftTip;
 	public Vector3 facing = Vector3.forward;
-    private Resistance resCoeffs = new Resistance(0.1f, 0.3f, 0.5f, 2.0f);
+    private Resistance resCoeffs = new Resistance(0.01f, 0.3f, 0.5f, 1.0f);
     private Vector3 gravity = Vector3.down * 9.8f;
     public Rigidbody rb;
     public InstrumentController instruments;
