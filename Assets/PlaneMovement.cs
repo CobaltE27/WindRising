@@ -38,6 +38,8 @@ public class PlaneMovement : MonoBehaviour
     private Resistance resCoeffs = new Resistance(0.1f, 0.3f, 0.5f, 2.0f);
     private Vector3 gravity = Vector3.down * 9.8f;
     public Rigidbody rb;
+    public InstrumentController instruments;
+    private float ratioTimer = 20f; //not timer duration
     void Start()
     {
         rb.velocity = rb.transform.forward * 20;
@@ -60,9 +62,17 @@ public class PlaneMovement : MonoBehaviour
         float airSpeedSquared = airVel.sqrMagnitude;
         float forwardAirspeedSquared = Vector3.Dot(rb.transform.forward, -airDir) * airSpeedSquared;
 		Vector3 accum = rb.GetAccumulatedForce(); //initialize forces, should basically always be 0
-        //Debug.Log(accum);
+                                                  //Debug.Log(accum);
+        ratioTimer += Time.deltaTime;
+        if (ratioTimer > 20) //20s since last sample
+        {
+            ratioTimer -= 20;
+			UpdateInstruments(rb.position, vel, Mathf.Sqrt(forwardAirspeedSquared), true);
+		}
+        else
+		    UpdateInstruments(rb.position, vel, Mathf.Sqrt(forwardAirspeedSquared), false);
 
-        Debug.DrawRay(rb.position, facing);
+		Debug.DrawRay(rb.position, facing);
 		accum += gravity * rb.mass; //apply gravity
 
         Vector3 drag = Vector3.zero;
@@ -143,5 +153,15 @@ public class PlaneMovement : MonoBehaviour
 			eTarget -= 0.5f;
 		}
 		tailElevatorPos = tailElevatorPos + (eTarget - tailElevatorPos) * 0.1f;
+	}
+
+    void UpdateInstruments(Vector3 position, Vector3 velocity, float airspeed, bool ratioSample)
+    {
+        instruments.UpdateAirspeed(airspeed);
+        instruments.UpdateAbsoluteSpeed(velocity.magnitude);
+        instruments.UpdateVariometer(velocity.y);
+        instruments.UpdateAltimeter(position.y);
+        if (ratioSample)
+            instruments.UpdateRatio(position);
 	}
 }
