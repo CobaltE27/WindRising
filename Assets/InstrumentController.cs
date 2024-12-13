@@ -41,12 +41,12 @@ public class InstrumentController : MonoBehaviour
 		variometer.text = MathF.Truncate(displayValue) + "\nm/min";
 		if (displayValue >= 0)
 		{
-			float normedSub = 1 - Mathf.Min(1, value / 5);
+			float normedSub = (1 - Mathf.Min(1, value / 5)) * 0.5f;
 			variometer.color = new Color(normedSub, 1, normedSub, 1);		
 		}
 		else
 		{
-			float normedSub = 1 - Mathf.Min(1, -value / 5);
+			float normedSub = (1 - Mathf.Min(1, -value / 5)) * 0.5f;
 			variometer.color = new Color(1, normedSub, normedSub, 1);
 		}
 	}
