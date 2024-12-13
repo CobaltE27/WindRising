@@ -32,6 +32,7 @@ public class PlaneMovement : MonoBehaviour
 	public float elevatorStrength = 0f;
     public float controlDragCoeff;
 	public float glideCoeff;
+    public float startingSpeed;
     public Transform rightTip;
     public Transform leftTip;
     public Transform tailPoint;
@@ -42,7 +43,7 @@ public class PlaneMovement : MonoBehaviour
     public InstrumentController instruments;
     void Start()
     {
-        rb.velocity = rb.transform.forward * 20;
+        rb.velocity = rb.transform.forward * startingSpeed;
     }
 
     // Update is called once per frame
