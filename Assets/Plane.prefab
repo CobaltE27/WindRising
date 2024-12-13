@@ -586,8 +586,8 @@ MonoBehaviour:
   tailElevatorPos: 0
   aileronStrength: 0.00005
   elevatorStrength: 0.0001
-  controlDragCoeff: 0
-  glideCoeff: 0.25
+  controlDragCoeff: 0.0001
+  glideCoeff: 0.23
   startingSpeed: 30
   rightTip: {fileID: 6021211257385703741}
   leftTip: {fileID: 4690546116956286780}
