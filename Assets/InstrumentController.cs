@@ -21,24 +21,24 @@ public class InstrumentController : MonoBehaviour
 
     public void UpdateAirspeed(float value)
     {
-		airspeed.text = value + "m/s";
+		airspeed.text = value.ToString("n1") + "\nm/s";
     }
 
 	public void UpdateAltimeter(float value)
 	{
-		altimeter.text = value + "m";
+		altimeter.text = MathF.Truncate(value) + "\nm";
 	}
 
 	public void UpdateAbsoluteSpeed(float value)
 	{
-		absoluteSpeed.text = value + "m/s";
+		absoluteSpeed.text = value.ToString("n1") + "\nm/s";
 	}
 
 	//provide value as m/s
 	public void UpdateVariometer(float value)
 	{
 		float displayValue = value * 60;
-		variometer.text = displayValue + "m/min";
+		variometer.text = MathF.Truncate(displayValue) + "\nm/min";
 		if (displayValue >= 0)
 		{
 			float normedSub = 1 - Mathf.Min(1, value / 5);
