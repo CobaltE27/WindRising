@@ -12,6 +12,8 @@ public class InstrumentController : MonoBehaviour
 	public TMP_Text variometer;
 	public TMP_Text ratio;
 	Vector3 oldPos = Vector3.zero;
+	float highest = 0f;
+	float distanceFromHighest = 0f;
 	bool hasOldPos = false;
 	// Start is called before the first frame update
 	void Start()
@@ -53,25 +55,24 @@ public class InstrumentController : MonoBehaviour
 
 	public void UpdateRatio(Vector3 position)
 	{
+		if (position.y > highest)
+		{
+			highest = position.y;
+			distanceFromHighest = 0f;
+			ratio.text = "+:1";
+			oldPos = position;
+			return;
+		}
+
 		if (hasOldPos)
 		{
 			Vector3 displacement = position - oldPos;
-			bool gain = true;
-			float delY = displacement.y;
-			if (delY < 0)
-			{
-				delY *= -1;
-				gain = false;
-			}
-			if (gain)
-			{
-				ratio.text = "+:1";
-				return;
-			}
+			oldPos = position;
 			displacement.y = 0;
+			distanceFromHighest += displacement.magnitude;
 			int delH = (int)displacement.magnitude;
 
-			float rate = delH / delY;
+			float rate = distanceFromHighest / (highest - position.y);
 			if (rate >= 1)
 				ratio.text = (int)rate + ":1";
 			else
