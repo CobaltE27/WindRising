@@ -15,8 +15,12 @@ public class CameraController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Transform craftTrans = transform.parent.transform;
 		rotation.y += Input.GetAxis("Mouse X");
 		rotation.x += -Input.GetAxis("Mouse Y");
-		transform.eulerAngles = transform.parent.transform.eulerAngles + rotation * speed;
+		rotation.y = Mathf.Clamp(rotation.y, -60f, 60f);
+		rotation.x = Mathf.Clamp(rotation.x, -30f, 30f);
+		Debug.Log(rotation);
+		transform.localEulerAngles = rotation * speed;
 	}
 }

@@ -88,7 +88,6 @@ public class PlaneMovement : MonoBehaviour
         }
         accum += drag;
 		Debug.DrawRay(rb.position, drag, Color.yellow);
-		Debug.Log("drag force: " + drag);
 
 		Vector3 glideForce = facing * (Mathf.Abs(Vector3.Dot(rb.transform.up, drag.normalized)) * drag.magnitude) * glideCoeff; //glideforce proportional to upward drag force
 		accum += glideForce;
