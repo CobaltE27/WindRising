@@ -57,7 +57,7 @@ public class PlaneMovement : MonoBehaviour
 
 		Vector3 vel = rb.velocity;
         Vector3 facing = rb.transform.forward;
-        Vector3 staticWind = 3 * Vector3.up; //sample from weather sim
+        Vector3 staticWind = 3 * -Vector3.forward; //sample from weather sim
         Vector3 airVel = -vel + staticWind; //account for windspeed and travel through air
 		Debug.DrawRay(rb.position, airVel, Color.green);
 		Vector3 airDir = airVel.normalized;
