@@ -8,7 +8,8 @@ public class WeatherSim : MonoBehaviour
     public float squareWidth;
     public float cellHeight;
     public float cellSquareWidth;
-    public Vector3 sunDir;
+    Vector3 cellDims;
+	public Vector3 sunDir;
     public List<List<List<CellData>>> cells;
     int cellsWide;
     int cellsTall;
@@ -34,15 +35,16 @@ public class WeatherSim : MonoBehaviour
         cells = new List<List<List<CellData>>>();
         cellsWide = (int)(squareWidth / cellSquareWidth);
         cellsTall = (int)(height / cellHeight);
-        for (int i = 0; i < cellsTall; i++)
+		cellDims = new Vector3(cellSquareWidth, cellHeight, cellSquareWidth);
+		for (int i = 0; i < cellsWide; i++)
         {
             cells.Add(new List<List<CellData>>());
 
-            for (int j = 0; j < cellsWide; j++)
+            for (int j = 0; j < cellsTall; j++)
             {
                 cells[i].Add(new List<CellData>());
 
-                for (int h = 0; h < cellsTall; h++)
+                for (int h = 0; h < cellsWide; h++)
                 {
                     cells[i][j].Add(new CellData(Vector3.up, 1, 0));
                 }
@@ -82,13 +84,12 @@ public class WeatherSim : MonoBehaviour
     private int[] IndeciesFromCenterPos(Vector3 centerPos)
     {
         int[] indecies = {0, 0, 0};
-        Vector3 cellDims = new Vector3(cellSquareWidth, cellHeight, cellSquareWidth);
 		Vector3 offsetInGrid = centerPos - transform.position;
         Vector3 approxIndecies = (offsetInGrid - 0.5f * cellDims);
-        approxIndecies.x /= cellDims.x;
-        approxIndecies.y /= cellDims.y;
-        approxIndecies.z /= cellDims.z;
-        
+        approxIndecies.x /= cellSquareWidth;
+        approxIndecies.y /= cellHeight;
+        approxIndecies.z /= cellSquareWidth;
+
         for (int i = 0; i < 3; i++)
             indecies[i] = (int)approxIndecies[i];
 
@@ -104,20 +105,19 @@ public class WeatherSim : MonoBehaviour
     {
         int[] baseIndecies = IndeciesFromCenterPos(position);
         Vector3 avgWind = Vector3.zero;
-        int numSamples = 0;
-        for (int i = 0; i < 8; i++)
+		for (int i = 0; i < 8; i++)
         {
             int[] offset = { 0, 0, 0 };
-            if ((i / 4) % 2 == 0) //goes through all possible combination of offsets by counting in binary
+            if ((i / 4) % 2 == 1) //goes through all possible combination of offsets by counting in binary
                 offset[0] = 1;
-            if ((i / 2) % 2 == 0)
+            if ((i / 2) % 2 == 1)
                 offset[1] = 1;
-            if ((i) % 2 == 0)
+            if ((i) % 2 == 1)
                 offset[2] = 1;
 
             int[] indecies = { 0, 0, 0 };
             bool valid = true;
-            for (int j = 0; j < 2; j++)
+            for (int j = 0; j < baseIndecies.Length; j++)
             {
                 indecies[j] = baseIndecies[j] + offset[j];
 
@@ -131,11 +131,12 @@ public class WeatherSim : MonoBehaviour
             if (!valid)
                 continue;
 
-            numSamples++;
-            avgWind += cells[indecies[0]][indecies[1]][indecies[2]].Wind;
+            Vector3 displacement = CenterPosFromIndecies(indecies[0], indecies[1], indecies[2]) - position;
+			float weight = ((cellSquareWidth - Mathf.Abs(displacement.x)) / cellSquareWidth) * 
+                ((cellHeight - Mathf.Abs(displacement.y)) / cellHeight) * 
+                ((cellSquareWidth - Mathf.Abs(displacement.z)) / cellSquareWidth);
+			avgWind += cells[indecies[0]][indecies[1]][indecies[2]].Wind * weight;
         }
-        if (numSamples > 0)
-            avgWind /= (float)numSamples;
         return avgWind;
     }
 }
