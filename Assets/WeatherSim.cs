@@ -10,7 +10,7 @@ public class WeatherSim : MonoBehaviour
     public float cellHeight;
     public float cellSquareWidth;
     public float diffusedPressureFraction;
-    public float diffusedTempFraction;
+    public float tempDiffBonus;
     public float windStrength;
     Vector3 cellDims;
 	public Vector3 sunDir;
@@ -67,7 +67,7 @@ public class WeatherSim : MonoBehaviour
 
 				for (int z = 0; z < cellsWide; z++)
                 {
-                    cells[x][y].Add(new CellData(Vector3.zero, 1, 0));
+                    cells[x][y].Add(new CellData(Vector3.zero, 1, 0.5f));
                     debTexts[x][y].Add(Instantiate(textTemplate));
                     debTexts[x][y][z].transform.position = CenterPosFromIndecies(x, y, z);
 				}
@@ -81,7 +81,12 @@ public class WeatherSim : MonoBehaviour
         if (simCounter <= 0)
         {
             Debug.Log("Sim step!");
-            nextCells = new List<List<List<CellData>>>();
+			if (Input.GetKey(KeyCode.LeftShift))
+			{
+				cells[cellsWide / 2][0][cellsWide / 2].temp = 2;
+			}
+
+			nextCells = new List<List<List<CellData>>>();
             for (int x = 0; x < cellsWide; x++)
             {
                 nextCells.Add(new List<List<CellData>>());
@@ -106,10 +111,13 @@ public class WeatherSim : MonoBehaviour
 
 			cells = nextCells;
 
-        for (int x = 0; x < cellsWide; x++)
-            for (int z = 0; z < cellsWide; z++)
-                for (int y = 0; y < cellsTall; y++)
-                    debTexts[x][y][z].text = cells[x][y][z].pressure.ToString("n1");
+            for (int x = 0; x < cellsWide; x++)
+                for (int z = 0; z < cellsWide; z++)
+                    for (int y = 0; y < cellsTall; y++)
+                    {
+                        debTexts[x][y][z].text = cells[x][y][z].pressure.ToString("n1");
+						debTexts[x][y][z].color = new Color (cells[x][y][z].temp, 0, 0);
+					}
 	}
         simCounter--;
 
@@ -119,9 +127,7 @@ public class WeatherSim : MonoBehaviour
                 {
                     Vector3 centerPos = CenterPosFromIndecies(x, y, z);
                     CellData cell = cells[x][y][z];
-                    Vector3 colorComp = Vector3.Lerp(new Vector3(0, 0, 1), new Vector3(1, 0, 0), cell.temp);
-                    colorComp.y = cell.pressure;
-                    Debug.DrawRay(centerPos, cell.wind, new Color(colorComp.x, 0, colorComp.z));
+                    Debug.DrawRay(centerPos, cell.wind);
                 }
 
 
@@ -202,7 +208,7 @@ public class WeatherSim : MonoBehaviour
 
     private void Iterate(int x, int y, int z, List<List<List<CellData>>> current, List<List<List<CellData>>> next)
     {
-		Debug.Log("new cell");
+		//Debug.Log("new cell");
 		Dictionary<string, CellData> currentCells = new Dictionary<string, CellData>();
         Dictionary<string, CellData> nextCells = new Dictionary<string, CellData>();
         currentCells.Add("C", current[x][y][z]);
@@ -239,17 +245,21 @@ public class WeatherSim : MonoBehaviour
 		}
 
         float pressureDiffSum = 0f;
+        float currCenPressure = currentCells["C"].pressure;
+        float currCenTemp = currentCells["C"].temp;
 		Dictionary<string, float> pressureDiff = new Dictionary<string, float>();
 		foreach (string key in currentCells.Keys)
 		{
 			if (key == "C")
 				continue;
+			float tempDiffFraction = Mathf.Max(0, (currCenTemp - currentCells[key].temp) / currCenTemp);
 			float gravityBonus = 0f;
 			if (key == "U")
 				gravityBonus = -gravityDiff;
 			else if (key == "D")
 				gravityBonus = gravityDiff;
-			float dirPressDiff = (currentCells["C"].pressure - currentCells[key].pressure) + currentCells["C"].pressure * gravityBonus; //how much lower the pressure is in the cell to the keyed direction
+            float pressDiffFraction = (currCenPressure - currentCells[key].pressure) / currCenPressure;
+			float dirPressDiff = (currCenPressure - currentCells[key].pressure) + (currCenPressure * gravityBonus) + (tempDiffFraction * pressDiffFraction * tempDiffBonus); //how much lower the pressure is in the cell to the keyed direction
             if (dirPressDiff > 0)
             {
                 pressureDiff.Add(key, dirPressDiff);
@@ -260,12 +270,12 @@ public class WeatherSim : MonoBehaviour
         float totalOutflow = 0;
 		foreach (string key in pressureDiff.Keys) //at this point only runs for directions where the cell has less pressure than this one
         {
-			float fraction = pressureDiff[key] / pressureDiffSum;
+			float fractionOut = pressureDiff[key] * diffusedPressureFraction;
             //Debug.Log(x + " " + y + " " + z + ": " + fraction + " " + key);
-            float pressureOut = currentCells["C"].pressure * diffusedPressureFraction * fraction;
+            float pressureOut = currCenPressure * fractionOut;
             nextCells[key].pressure += pressureOut;
             totalOutflow += pressureOut;
-            nextCells[key].temp += currentCells["C"].temp * diffusedPressureFraction * fraction;
+            nextCells[key].temp += currCenTemp * fractionOut;
             nextCells["C"].wind += directions[key] * pressureOut * windStrength;
 		}
 
@@ -273,14 +283,14 @@ public class WeatherSim : MonoBehaviour
         float leftoverHeat = currentCells["C"].temp * ((currentCells["C"].pressure - totalOutflow) / currentCells["C"].pressure );
 		nextCells["C"].pressure += currentCells["C"].pressure - totalOutflow;
 
-		foreach (string key in currentCells.Keys) //at this point only runs for directions where the cell has less pressure than this one
-		{
-			if (key == "C")
-				continue;
-			float portion = (1f / (float)currentCells.Keys.Count) * (leftoverHeat * diffusedTempFraction);
-			nextCells[key].temp += portion;
-		}
-        leftoverHeat -= leftoverHeat * diffusedTempFraction;
+		//foreach (string key in currentCells.Keys) //at this point only runs for directions where the cell has less pressure than this one
+		//{
+		//	if (key == "C")
+		//		continue;
+		//	float portion = (1f / (float)currentCells.Keys.Count) * (leftoverHeat * diffusedTempFraction);
+		//	nextCells[key].temp += portion;
+		//}
+  //      leftoverHeat -= leftoverHeat * diffusedTempFraction;
         nextCells["C"].temp += leftoverHeat;
 	}
 }
