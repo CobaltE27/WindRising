@@ -83,7 +83,7 @@ public class WeatherSim : MonoBehaviour
             Debug.Log("Sim step!");
 			if (Input.GetKey(KeyCode.LeftShift))
 			{
-				cells[cellsWide / 2][0][cellsWide / 2].temp = 2;
+				cells[cellsWide / 2][0][cellsWide / 2].temp = 1;
 			}
 
 			nextCells = new List<List<List<CellData>>>();
@@ -244,10 +244,10 @@ public class WeatherSim : MonoBehaviour
 			nextCells.Add("B", next[x][y][z - 1]);
 		}
 
-        float pressureDiffSum = 0f;
+        float pressureForceSum = 0f;
         float currCenPressure = currentCells["C"].pressure;
         float currCenTemp = currentCells["C"].temp;
-		Dictionary<string, float> pressureDiff = new Dictionary<string, float>();
+		Dictionary<string, float> pressureForce = new Dictionary<string, float>();
 		foreach (string key in currentCells.Keys)
 		{
 			if (key == "C")
@@ -258,29 +258,33 @@ public class WeatherSim : MonoBehaviour
 				gravityBonus = -gravityDiff;
 			else if (key == "D")
 				gravityBonus = gravityDiff;
-            float pressDiffFraction = (currCenPressure - currentCells[key].pressure) / currCenPressure;
-			float dirPressDiff = (currCenPressure - currentCells[key].pressure) + (currCenPressure * gravityBonus) + (tempDiffFraction * pressDiffFraction * tempDiffBonus); //how much lower the pressure is in the cell to the keyed direction
-            if (dirPressDiff > 0)
+
+            float pressDiff = currCenPressure - currentCells[key].pressure;
+            float tempForce = Mathf.Max(0, tempDiffFraction * (pressDiff / currCenPressure) * tempDiffBonus);
+			float dirPressForce = pressDiff + (currCenPressure * gravityBonus) + tempForce; //how much lower the pressure is in the cell to the keyed direction, bias by gravity and temperature
+            if (dirPressForce > 0)
             {
-                pressureDiff.Add(key, dirPressDiff);
-                pressureDiffSum += dirPressDiff;
+                pressureForce.Add(key, dirPressForce);
+                pressureForceSum += dirPressForce;
             }
 		}
 
         float totalOutflow = 0;
-		foreach (string key in pressureDiff.Keys) //at this point only runs for directions where the cell has less pressure than this one
+        float totalTempLoss = 0;
+        float availablePressureFraction = (-1 / (diffusedPressureFraction * pressureForceSum + 1)) + 1; //ensures available pressure fraction approaches 1
+		foreach (string key in pressureForce.Keys) //at this point, only runs for directions where pressure force is outward
         {
-			float fractionOut = pressureDiff[key] * diffusedPressureFraction;
             //Debug.Log(x + " " + y + " " + z + ": " + fraction + " " + key);
-            float pressureOut = currCenPressure * fractionOut;
+            float pressureOut = (pressureForce[key] / pressureForceSum) * (availablePressureFraction * currCenPressure);
             nextCells[key].pressure += pressureOut;
             totalOutflow += pressureOut;
-            nextCells[key].temp += currCenTemp * fractionOut;
-            nextCells["C"].wind += directions[key] * pressureOut * windStrength;
+			nextCells["C"].wind += directions[key] * pressureOut * windStrength;
+            float tempOut = currCenTemp * (pressureOut / currCenPressure);
+			nextCells[key].temp += tempOut;
+            totalTempLoss += tempOut;
 		}
 
         //fill in C based on remaining pressure/temp
-        float leftoverHeat = currentCells["C"].temp * ((currentCells["C"].pressure - totalOutflow) / currentCells["C"].pressure );
 		nextCells["C"].pressure += currentCells["C"].pressure - totalOutflow;
 
 		//foreach (string key in currentCells.Keys) //at this point only runs for directions where the cell has less pressure than this one
@@ -291,6 +295,6 @@ public class WeatherSim : MonoBehaviour
 		//	nextCells[key].temp += portion;
 		//}
   //      leftoverHeat -= leftoverHeat * diffusedTempFraction;
-        nextCells["C"].temp += leftoverHeat;
+        nextCells["C"].temp += currCenTemp - totalTempLoss;
 	}
 }
