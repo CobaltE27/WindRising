@@ -10,6 +10,7 @@ public class WeatherSim : MonoBehaviour
     public float cellHeight;
     public float cellSquareWidth;
     public float diffusionCoeff;
+    public float viscosity;
     public float windStrength;
     Vector3 cellDims;
 	public Vector3 sunDir;
@@ -64,9 +65,10 @@ public class WeatherSim : MonoBehaviour
 
 				for (int z = 0; z < cellsWide; z++)
                 {
-                    cells[x][y].Add(new CellData(Vector3.zero, 1, 0.5f));
+                    cells[x][y].Add(new CellData(Vector3.up, 1, 0.5f));
                     debTexts[x][y].Add(Instantiate(textTemplate));
                     debTexts[x][y][z].transform.position = CenterPosFromIndecies(x, y, z);
+                    debTexts[x][y][z].alignment = TextAlignmentOptions.Midline;
 				}
             }
         }
@@ -83,19 +85,19 @@ public class WeatherSim : MonoBehaviour
 				cells[cellsWide / 2][0][cellsWide / 2].pressure = 20;
 			}
 
-            InitializeCells(ref nextCells);
+            nextCells = InitializeCells();
 
             //VelocityStep();
             DensityStep();
 
-			cells = nextCells;
+			//cells = nextCells;
 
             for (int x = 0; x < cellsWide; x++)
                 for (int z = 0; z < cellsWide; z++)
                     for (int y = 0; y < cellsTall; y++)
                     {
                         debTexts[x][y][z].text = cells[x][y][z].pressure.ToString("n1");
-						debTexts[x][y][z].color = new Color (cells[x][y][z].temp / 5, 0, 0);
+						debTexts[x][y][z].color = new Color (cells[x][y][z].pressure / 20, 0, 0);
 					}
 
 			simCounter = simPeriodS * 50;
@@ -187,7 +189,90 @@ public class WeatherSim : MonoBehaviour
         return avgWind * windStrength;
     }
 
-    private void Iterate(int x, int y, int z, List<List<List<CellData>>> current, List<List<List<CellData>>> next)
+    /// <summary>
+    /// Works similarly to SampleWind, but takes in approximate array indecies instead of actual position since simulation iterates across indecies
+    /// </summary>
+    /// <param name="approxIndecies"></param>
+    /// <returns></returns>
+    private float BacktracedPressure(Vector3 approxIndecies)
+    {
+		int[] baseIndecies = {(int)approxIndecies.x, (int)approxIndecies.y, (int)approxIndecies.z};
+		float avgPressure = 0f;
+		for (int i = 0; i < 8; i++)
+		{
+			int[] offset = { 0, 0, 0 };
+			if ((i / 4) % 2 == 1) //goes through all possible combination of offsets by counting in binary
+				offset[0] = 1;
+			if ((i / 2) % 2 == 1)
+				offset[1] = 1;
+			if ((i) % 2 == 1)
+				offset[2] = 1;
+
+			int[] indecies = { 0, 0, 0 };
+			bool valid = true;
+			for (int j = 0; j < baseIndecies.Length; j++)
+			{
+				indecies[j] = baseIndecies[j] + offset[j];
+
+				if (indecies[j] < 0) //indecies are too low to be in grid
+				{
+					valid = false; break;
+				}
+			}
+			if (indecies[0] > cellsWide - 1 || indecies[1] > cellsTall - 1 || indecies[2] > cellsWide - 1) //indecies are to high to be in grid
+				valid = false;
+			if (!valid)
+				continue;
+
+			Vector3 displacement = new Vector3(indecies[0], indecies[1], indecies[2]) - approxIndecies;
+			float weight = (1 - Mathf.Abs(displacement.x)) *
+				(1 - Mathf.Abs(displacement.y)) *
+				(1 - Mathf.Abs(displacement.z));
+			avgPressure += cells[indecies[0]][indecies[1]][indecies[2]].pressure * weight;
+		}
+		return avgPressure;
+	}
+
+	private Vector3 BacktracedWind(Vector3 approxIndecies)
+	{
+		int[] baseIndecies = { (int)approxIndecies.x, (int)approxIndecies.y, (int)approxIndecies.z };
+		Vector3 avgWind = Vector3.zero;
+		for (int i = 0; i < 8; i++)
+		{
+			int[] offset = { 0, 0, 0 };
+			if ((i / 4) % 2 == 1) //goes through all possible combination of offsets by counting in binary
+				offset[0] = 1;
+			if ((i / 2) % 2 == 1)
+				offset[1] = 1;
+			if ((i) % 2 == 1)
+				offset[2] = 1;
+
+			int[] indecies = { 0, 0, 0 };
+			bool valid = true;
+			for (int j = 0; j < baseIndecies.Length; j++)
+			{
+				indecies[j] = baseIndecies[j] + offset[j];
+
+				if (indecies[j] < 0) //indecies are too low to be in grid
+				{
+					valid = false; break;
+				}
+			}
+			if (indecies[0] > cellsWide - 1 || indecies[1] > cellsTall - 1 || indecies[2] > cellsWide - 1) //indecies are to high to be in grid
+				valid = false;
+			if (!valid)
+				continue;
+
+			Vector3 displacement = new Vector3(indecies[0], indecies[1], indecies[2]) - approxIndecies;
+			float weight = (1 - Mathf.Abs(displacement.x)) *
+				(1 - Mathf.Abs(displacement.y)) *
+				(1 - Mathf.Abs(displacement.z));
+			avgWind += cells[indecies[0]][indecies[1]][indecies[2]].wind * weight;
+		}
+		return avgWind;
+	}
+
+	private void Iterate(int x, int y, int z, List<List<List<CellData>>> current, List<List<List<CellData>>> next)
     {
 		Debug.Log(x + " " + y + " " + z + ":");
         Dictionary<string, CellData> currentCells = new Dictionary<string, CellData>();
@@ -228,9 +313,9 @@ public class WeatherSim : MonoBehaviour
 
 	}
 
-    private void InitializeCells(ref List<List<List<CellData>>> cellList)
+    private List<List<List<CellData>>> InitializeCells()
     {
-		cellList = new List<List<List<CellData>>>();
+		List<List<List<CellData>>> cellList = new List<List<List<CellData>>>();
 		for (int x = 0; x < cellsWide; x++)
 		{
 			cellList.Add(new List<List<CellData>>());
@@ -245,16 +330,21 @@ public class WeatherSim : MonoBehaviour
 				}
 			}
 		}
+        return cellList;
 	}
 
     private void DensityStep()
     {
-        //add source
-        Diffuse(cells, nextCells, simPeriodS);
-        //Advect();
+        //add source pressure here if desired
+        List<List<List<CellData>>> postDiffuse = InitializeCells();
+		DiffusePressure(cells, postDiffuse, simPeriodS);
+        cells = postDiffuse;
+        List<List<List<CellData>>> postAdvect = InitializeCells();
+        AdvectPressure(cells, postAdvect, simPeriodS);
+        cells = postAdvect;
     }
 
-    private void Diffuse(List<List<List<CellData>>> current, List<List<List<CellData>>> next, float dt)
+    private void DiffusePressure(List<List<List<CellData>>> current, List<List<List<CellData>>> next, float dt)
     {
 		float diffused = diffusionCoeff * dt * (cellsWide - 1) * (cellsWide - 1) * (cellsTall - 1);
         for (int k = 0; k < 20; k++)
@@ -264,15 +354,183 @@ public class WeatherSim : MonoBehaviour
                     for (int z = 1; z < cellsWide - 1; z++)
                     {
                         next[x][y][z].pressure = (current[x][y][z].pressure + diffused *
-                            (current[x + 1][y][z].pressure + current[x - 1][y][z].pressure + current[x][y + 1][z].pressure + current[x][y - 1][z].pressure + current[x][y][z + 1].pressure + current[x][y][z - 1].pressure))
+                            (current[x + 1][y][z].pressure + current[x - 1][y][z].pressure + current[x][y + 1][z].pressure + 
+                            current[x][y - 1][z].pressure + current[x][y][z + 1].pressure + current[x][y][z - 1].pressure))
                             / (1 + 6 * diffused);
-                        Debug.Log(next[x][y][z].pressure);
                     }
 			SetBoundaries(current, next);
 		}
+		for (int x = 1; x < cellsWide - 1; x++)
+			for (int y = 1; y < cellsTall - 1; y++)
+				for (int z = 1; z < cellsWide - 1; z++)
+				{
+                    next[x][y][z].wind = current[x][y][z].wind;
+				}
 	}
 
-    private void SetBoundaries(List<List<List<CellData>>> current, List<List<List<CellData>>> next)
+    private void AdvectPressure(List<List<List<CellData>>> current, List<List<List<CellData>>> next, float dt)
+    {
+        Vector3 dt0 = dt * new Vector3(cellsWide - 1, cellsTall - 1, cellsWide - 1);
+        dt0.x /= cellSquareWidth; dt0.y /= cellHeight; dt0.z /= cellSquareWidth;
+		for (int x = 1; x < cellsWide - 1; x++)
+			for (int y = 1; y < cellsTall - 1; y++)
+				for (int z = 1; z < cellsWide - 1; z++)
+                {
+                    Vector3 from = new Vector3(x, y, z) - Vector3.Scale(dt0, current[x][y][z].wind);
+                    if (from.x < 0.5f) from.x = 0.5f;
+                    else if (from.x > cellsWide - 0.5f) from.x = cellsWide - 0.5f;
+					if (from.y < 0.5f) from.y = 0.5f;
+					else if (from.y > cellsTall - 0.5f) from.y = cellsTall - 0.5f;
+					if (from.x < 0.5f) from.x = 0.5f;
+					else if (from.z > cellsWide - 0.5f) from.z = cellsWide - 0.5f;
+					//sample from 8 surrounding cells
+					next[x][y][z].pressure = BacktracedPressure(from);
+                    //Debug.Log(x + " " + y + " " + z + ": " + "f:" + from + " f0:" + from0 + " f1:" + from1 + " s1:" + stu1 + " s0:" + stu0 + " dt0:" + dt0 + " w:" + current[x][y][z].wind);
+				}
+		for (int x = 1; x < cellsWide - 1; x++)
+			for (int y = 1; y < cellsTall - 1; y++)
+				for (int z = 1; z < cellsWide - 1; z++)
+				{
+					next[x][y][z].wind = current[x][y][z].wind;
+				}
+		SetBoundaries(current, next);
+	}
+
+	private void VelocityStep()
+    {
+		//add source wind velocities here if desired
+		List<List<List<CellData>>> postVelDiffuse = InitializeCells();
+		DiffuseVelocity(cells, postVelDiffuse, simPeriodS);
+		cells = postVelDiffuse;
+		List<List<List<CellData>>> postProject = InitializeCells();
+		//project
+		cells = postProject;
+		List<List<List<CellData>>> postAdvect = InitializeCells();
+		AdvectVelocity(cells, postAdvect, simPeriodS);
+		cells = postAdvect;
+		List<List<List<CellData>>> postFinalProject = InitializeCells();
+		//project
+		cells = postFinalProject;
+	}
+
+	private void DiffuseVelocity(List<List<List<CellData>>> current, List<List<List<CellData>>> next, float dt)
+	{
+		float diffused = viscosity * dt * (cellsWide - 1) * (cellsWide - 1) * (cellsTall - 1);
+		for (int k = 0; k < 20; k++)
+		{
+			for (int x = 1; x < cellsWide - 1; x++)
+				for (int y = 1; y < cellsTall - 1; y++)
+					for (int z = 1; z < cellsWide - 1; z++)
+					{
+						next[x][y][z].wind = (current[x][y][z].wind + diffused *
+							(current[x + 1][y][z].wind + current[x - 1][y][z].wind + current[x][y + 1][z].wind +
+							current[x][y - 1][z].wind + current[x][y][z + 1].wind + current[x][y][z - 1].wind))
+							/ (1 + 6 * diffused);
+					}
+			SetBoundaries(current, next);
+		}
+		for (int x = 1; x < cellsWide - 1; x++)
+			for (int y = 1; y < cellsTall - 1; y++)
+				for (int z = 1; z < cellsWide - 1; z++)
+				{
+					next[x][y][z].pressure = current[x][y][z].pressure;
+				}
+	}
+
+	private void AdvectVelocity(List<List<List<CellData>>> current, List<List<List<CellData>>> next, float dt)
+	{
+		Vector3 dt0 = dt * new Vector3(cellsWide - 1, cellsTall - 1, cellsWide - 1);
+		dt0.x /= cellSquareWidth; dt0.y /= cellHeight; dt0.z /= cellSquareWidth;
+		for (int x = 1; x < cellsWide - 1; x++)
+			for (int y = 1; y < cellsTall - 1; y++)
+				for (int z = 1; z < cellsWide - 1; z++)
+				{
+					Vector3 from = new Vector3(x, y, z) - Vector3.Scale(dt0, current[x][y][z].wind);
+					if (from.x < 0.5f) from.x = 0.5f;
+					else if (from.x > cellsWide - 0.5f) from.x = cellsWide - 0.5f;
+					if (from.y < 0.5f) from.y = 0.5f;
+					else if (from.y > cellsTall - 0.5f) from.y = cellsTall - 0.5f;
+					if (from.x < 0.5f) from.x = 0.5f;
+					else if (from.z > cellsWide - 0.5f) from.z = cellsWide - 0.5f;
+					//sample from 8 surrounding cells
+					next[x][y][z].wind = BacktracedWind(from);
+				}
+		for (int x = 1; x < cellsWide - 1; x++)
+			for (int y = 1; y < cellsTall - 1; y++)
+				for (int z = 1; z < cellsWide - 1; z++)
+				{
+					next[x][y][z].pressure = current[x][y][z].pressure;
+				}
+		SetBoundaries(current, next);
+	}
+
+	private void Project(List<List<List<CellData>>> current, List<List<List<CellData>>> next, float dt)
+	{
+		Vector3 h = new Vector3(1 / (cellsWide - 1), 1 / (cellsTall - 1), 1 / (cellsWide - 1));
+		List<List<List<float>>> div = new List<List<List<float>>>();
+		for (int x = 0; x < cellsWide; x++)
+		{
+			div.Add(new List<List<float>>());
+
+			for (int y = 0; y < cellsTall; y++)
+			{
+				div[x].Add(new List<float>());
+
+				for (int z = 0; z < cellsWide; z++)
+				{
+					div[x][y].Add(0f);
+				}
+			}
+		}
+		List<List<List<float>>> p = new List<List<List<float>>>();
+		for (int x = 0; x < cellsWide; x++)
+		{
+			p.Add(new List<List<float>>());
+
+			for (int y = 0; y < cellsTall; y++)
+			{
+				p[x].Add(new List<float>());
+
+				for (int z = 0; z < cellsWide; z++)
+				{
+					p[x][y].Add(0f);
+				}
+			}
+		}
+
+		for (int x = 1; x < cellsWide - 1; x++)
+			for (int y = 1; y < cellsTall - 1; y++)
+				for (int z = 1; z < cellsWide - 1; z++)
+				{
+					div[x][y][z] = -0.5f * h * (current[x + 1][y][z].wind.x - current[x - 1][y][z].wind.x
+						+ current[x][y + 1][z].wind.y - current[x][y - 1][z].wind.y
+						+ current[x][y][z + 1].wind.z - current[x][y][z - 1].wind.z);
+					p[x][y][z] = 0;
+				}
+		//set boundary div, p to 0?
+
+		for (int k = 0; k < 20; k++)
+		{
+			for (int x = 1; x < cellsWide - 1; x++)
+				for (int y = 1; y < cellsTall - 1; y++)
+					for (int z = 1; z < cellsWide - 1; z++)
+					{
+						p[x][y][z] = (div[x][y][z] + p[x + 1][y][z] + p[x - 1][y][z] + p[x][y + 1][z] + p[x][y - 1][z] + p[x][y][z + 1] + p[x][y][z - 1]) / 6;
+					}
+			//set boundary p to 0?
+		}
+
+		for (int x = 1; x < cellsWide - 1; x++)
+			for (int y = 1; y < cellsTall - 1; y++)
+				for (int z = 1; z < cellsWide - 1; z++)
+				{
+					next[x][y][z].wind -= 0.5f * new Vector3((p[x + 1][y][z] - p[x - 1][y][z]) / h, p[x][y + 1][z] - p[x][y - 1][z]) / h, p[x][y][z + 1] - p[x][y][z + 1]) / h);
+				}
+
+		SetBoundaries(current, next);
+	}
+
+	private void SetBoundaries(List<List<List<CellData>>> current, List<List<List<CellData>>> next)
     {
 		for (int x = 0; x < cellsWide; x++)
 			for (int y = 0; y < cellsTall; y++)
