@@ -20,11 +20,13 @@ public class WeatherSim : MonoBehaviour
     int cellsTall;
     Vector3 globalWind;
     private Dictionary<string, Vector3> directions;
-    public int simPeriodS;
+    private Dictionary<string, float> pressureWeights;
+    private Dictionary<string, float> tempWeights;
+	public int simPeriodS;
     int simCounter = 0;
     List<List<List<TMP_Text>>> debTexts;
     public TMP_Text textTemplate;
-    public float gravityDiff;
+    public float gravityBonus;
 
 	public class CellData
     {
@@ -49,7 +51,23 @@ public class WeatherSim : MonoBehaviour
         directions.Add("L", -Vector3.right);
         directions.Add("F", Vector3.forward);
         directions.Add("B", -Vector3.forward);
-        debTexts = new List<List<List<TMP_Text>>>();
+		pressureWeights = new Dictionary<string, float>();
+		pressureWeights.Add("C", 5);
+		pressureWeights.Add("U", 3);
+		pressureWeights.Add("D", 3);
+		pressureWeights.Add("R", 1);
+		pressureWeights.Add("L", 1);
+		pressureWeights.Add("F", 1);
+		pressureWeights.Add("B", 1);
+		tempWeights = new Dictionary<string, float>();
+		tempWeights.Add("C", 1);
+		tempWeights.Add("U", 10);
+		tempWeights.Add("D", 30);
+		tempWeights.Add("R", 1);
+		tempWeights.Add("L", 1);
+		tempWeights.Add("F", 1);
+		tempWeights.Add("B", 1);
+		debTexts = new List<List<List<TMP_Text>>>();
 
 		cells = new List<List<List<CellData>>>();
         cellsWide = (int)(squareWidth / cellSquareWidth);
@@ -83,7 +101,7 @@ public class WeatherSim : MonoBehaviour
             Debug.Log("Sim step!");
 			if (Input.GetKey(KeyCode.LeftShift))
 			{
-				cells[cellsWide / 2][0][cellsWide / 2].pressure = 3;
+				cells[cellsWide / 2][0][cellsWide / 2].temp = 20;
 			}
 
 			nextCells = new List<List<List<CellData>>>();
@@ -116,7 +134,7 @@ public class WeatherSim : MonoBehaviour
                     for (int y = 0; y < cellsTall; y++)
                     {
                         debTexts[x][y][z].text = cells[x][y][z].pressure.ToString("n1");
-						debTexts[x][y][z].color = new Color (cells[x][y][z].temp, 0, 0);
+						debTexts[x][y][z].color = new Color (cells[x][y][z].temp / 5, 0, 0);
 					}
 	}
         simCounter--;
@@ -244,15 +262,27 @@ public class WeatherSim : MonoBehaviour
 			nextCells.Add("B", next[x][y][z - 1]);
 		}
 
-        float pressureTotal = 0f;
+        /*float pressureTotal = 0f;
         float tempTotal = 0f;
-        foreach (string key in currentCells.Keys)
+        float pressureWeightTotal = 0f;
+        float tempWeightTotal = 0f;
+		foreach (string key in currentCells.Keys)
         {
-            pressureTotal += currentCells[key].pressure;
-            tempTotal += currentCells[key].temp;
+			float gravityDiff = 0f;
+            float tempMult = 1f;
+            if (key == "U")
+                gravityDiff = gravityBonus;
+            else if (key == "D")
+                gravityDiff = -gravityBonus;
+            else if (key == "C")
+                tempMult = 0.2f;
+            pressureTotal += (currentCells[key].pressure + gravityDiff) * pressureWeights[key];
+            tempTotal += (currentCells[key].temp) * tempMult * tempWeights[key];
+            pressureWeightTotal += pressureWeights[key];
+            tempWeightTotal += tempWeights[key];
         }
-        nextCells["C"].pressure = pressureTotal / currentCells.Keys.Count;
-        nextCells["C"].temp = tempTotal / currentCells.Keys.Count;
+        nextCells["C"].pressure = pressureTotal / pressureWeightTotal;
+        nextCells["C"].temp = tempTotal / tempWeightTotal;*/
 
 		//      float pressureForceSum = 0f;
 		//      float currCenPressure = currentCells["C"].pressure;

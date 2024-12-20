@@ -366,6 +366,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7263649846642902533, guid: 8f3ef70521c57cc4b858f48d90d82e0c, type: 3}
+      propertyPath: gravityDiff
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7263649846642902533, guid: 8f3ef70521c57cc4b858f48d90d82e0c, type: 3}
       propertyPath: tempDiffBonus
       value: 1
       objectReference: {fileID: 0}
