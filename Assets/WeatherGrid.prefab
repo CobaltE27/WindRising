@@ -49,13 +49,11 @@ MonoBehaviour:
   squareWidth: 50
   cellHeight: 5
   cellSquareWidth: 5
-  diffusedPressureFraction: 0.4
-  tempDiffBonus: 0.1
+  diffusionCoeff: 0.1
   windStrength: 10
   sunDir: {x: 0, y: 1, z: 0}
   simPeriodS: 10
   textTemplate: {fileID: 6883735299400482325}
-  gravityBonus: 0.1
 --- !u!1 &8921239653439097597
 GameObject:
   m_ObjectHideFlags: 0
