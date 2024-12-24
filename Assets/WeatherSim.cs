@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using TMPro;
+using static WeatherSim;
 
 public class WeatherSim : MonoBehaviour
 {
@@ -36,6 +38,11 @@ public class WeatherSim : MonoBehaviour
             this.pressure = pressure;
             this.temp = temp;
         }
+
+		public override string ToString()
+		{
+			return wind + ", p:" + pressure + ", t:" + temp; 
+		}
     }
     // Start is called before the first frame update
     void Start()
@@ -82,12 +89,13 @@ public class WeatherSim : MonoBehaviour
             Debug.Log("Sim step!");
 			if (Input.GetKey(KeyCode.LeftShift))
 			{
-				cells[cellsWide / 2][0][cellsWide / 2].pressure = 20;
+				cells[cellsWide / 2][1][cellsWide / 2].pressure = 20;
+				cells[cellsWide / 2][1][cellsWide / 2].wind = new Vector3(5, 0, 0);
 			}
 
             nextCells = InitializeCells();
 
-            //VelocityStep();
+            VelocityStep();
             DensityStep();
 
 			//cells = nextCells;
@@ -110,7 +118,7 @@ public class WeatherSim : MonoBehaviour
                 {
                     Vector3 centerPos = CenterPosFromIndecies(x, y, z);
                     CellData cell = cells[x][y][z];
-                    Debug.DrawRay(centerPos, cell.wind);
+                    Debug.DrawRay(centerPos, cell.wind * 5);
                 }
 
 
@@ -399,18 +407,27 @@ public class WeatherSim : MonoBehaviour
 	private void VelocityStep()
     {
 		//add source wind velocities here if desired
+		Debug.Log(cells[5][1][5].ToString());
+
 		List<List<List<CellData>>> postVelDiffuse = InitializeCells();
 		DiffuseVelocity(cells, postVelDiffuse, simPeriodS);
 		cells = postVelDiffuse;
+		Debug.Log(cells[5][1][5].ToString());
+
 		List<List<List<CellData>>> postProject = InitializeCells();
-		//project
+		Project(cells, postProject);
 		cells = postProject;
+		Debug.Log(cells[5][1][5].ToString());
+
 		List<List<List<CellData>>> postAdvect = InitializeCells();
 		AdvectVelocity(cells, postAdvect, simPeriodS);
 		cells = postAdvect;
+		Debug.Log(cells[5][1][5].ToString());
+
 		List<List<List<CellData>>> postFinalProject = InitializeCells();
-		//project
+		Project(cells, postFinalProject);
 		cells = postFinalProject;
+		Debug.Log(cells[5][1][5].ToString());
 	}
 
 	private void DiffuseVelocity(List<List<List<CellData>>> current, List<List<List<CellData>>> next, float dt)
@@ -464,9 +481,10 @@ public class WeatherSim : MonoBehaviour
 		SetBoundaries(current, next);
 	}
 
-	private void Project(List<List<List<CellData>>> current, List<List<List<CellData>>> next, float dt)
+	private void Project(List<List<List<CellData>>> current, List<List<List<CellData>>> next)
 	{
-		Vector3 h = new Vector3(1 / (cellsWide - 1), 1 / (cellsTall - 1), 1 / (cellsWide - 1));
+		float h = ((1 / ((float)cellsWide - 1)) + (1 / ((float)cellsTall - 1)) + (1 / ((float)cellsWide - 1))) / 3f;
+		Debug.Log("h:" + h);
 		List<List<List<float>>> div = new List<List<List<float>>>();
 		for (int x = 0; x < cellsWide; x++)
 		{
@@ -505,9 +523,10 @@ public class WeatherSim : MonoBehaviour
 					div[x][y][z] = -0.5f * h * (current[x + 1][y][z].wind.x - current[x - 1][y][z].wind.x
 						+ current[x][y + 1][z].wind.y - current[x][y - 1][z].wind.y
 						+ current[x][y][z + 1].wind.z - current[x][y][z - 1].wind.z);
-					p[x][y][z] = 0;
+					//p[x][y][z] = 0;
 				}
-		//set boundary div, p to 0?
+		NeighborBoundaries(div);
+		NeighborBoundaries(p);
 
 		for (int k = 0; k < 20; k++)
 		{
@@ -517,17 +536,22 @@ public class WeatherSim : MonoBehaviour
 					{
 						p[x][y][z] = (div[x][y][z] + p[x + 1][y][z] + p[x - 1][y][z] + p[x][y + 1][z] + p[x][y - 1][z] + p[x][y][z + 1] + p[x][y][z - 1]) / 6;
 					}
-			//set boundary p to 0?
+			NeighborBoundaries(p);
 		}
 
 		for (int x = 1; x < cellsWide - 1; x++)
 			for (int y = 1; y < cellsTall - 1; y++)
 				for (int z = 1; z < cellsWide - 1; z++)
+					next[x][y][z].wind -= 0.5f * new Vector3((p[x + 1][y][z] - p[x - 1][y][z]) / h, (p[x][y + 1][z] - p[x][y - 1][z]) / h, (p[x][y][z + 1] - p[x][y][z + 1]) / h); //TODO:use directional h instead of average
+
+		for (int x = 1; x < cellsWide - 1; x++)
+			for (int y = 1; y < cellsTall - 1; y++)
+				for (int z = 1; z < cellsWide - 1; z++)
 				{
-					next[x][y][z].wind -= 0.5f * new Vector3((p[x + 1][y][z] - p[x - 1][y][z]) / h, p[x][y + 1][z] - p[x][y - 1][z]) / h, p[x][y][z + 1] - p[x][y][z + 1]) / h);
+					next[x][y][z].pressure = current[x][y][z].pressure;
 				}
 
-		SetBoundaries(current, next);
+		SetBoundaries(current, next); //may require different boundary conditions?
 	}
 
 	private void SetBoundaries(List<List<List<CellData>>> current, List<List<List<CellData>>> next)
@@ -539,5 +563,82 @@ public class WeatherSim : MonoBehaviour
                     {
                         next[x][y][z] = current[x][y][z];
                     }
+	}
+
+	private void SetBoundaries<T>(List<List<List<T>>> list, T value)
+	{
+		for (int x = 0; x < cellsWide; x++)
+			for (int y = 0; y < cellsTall; y++)
+				for (int z = 0; z < cellsWide; z++)
+					if (x == 0 || y == 0 || z == 0 || x == cellsWide - 1 || y == cellsTall - 1 || z == cellsWide - 1)
+					{
+						list[x][y][z] = value;
+					}
+	}
+
+	private void NeighborBoundaries(List<List<List<float>>> cellList)
+	{
+		int greaterDim = Math.Max(cellsTall, cellsWide);
+		for (int i = 1; i < greaterDim - 1; i++)
+			for (int j = 1; j < greaterDim - 1; j++)
+			{
+
+				if (i < cellsTall - 1 && j < cellsWide - 1)
+					cellList[0][i][j] = cellList[1][i][j];
+				if (i < cellsWide - 1 && j < cellsWide - 1)
+					cellList[i][0][j] = cellList[i][1][j];
+				if (i < cellsWide - 1 && j < cellsTall - 1)
+					cellList[i][j][0] = cellList[i][j][1];
+				if (i < cellsTall - 1 && j < cellsWide - 1)
+					cellList[cellsWide - 1][i][j] = cellList[cellsWide - 2][i][j];
+				if (i < cellsWide - 1 && j < cellsWide - 1)
+					cellList[i][cellsTall - 1][j] = cellList[i][cellsTall - 2][j];
+				if (i < cellsWide - 1 && j < cellsTall - 1)
+					cellList[i][j][cellsWide - 1] = cellList[i][j][cellsWide - 2];
+			}
+
+		int maxWIndex = cellsWide - 1;
+		int maxHIndex = cellsTall - 1;
+		for (int i = 1; i < greaterDim - 1; i++) //"edge" cases
+		{
+			if (i < cellsWide - 1)
+				cellList[0][0][i] = (cellList[1][0][i] + cellList[0][1][i]) / 2f;
+			if (i < cellsTall - 1)
+				cellList[0][i][0] = (cellList[1][i][0] + cellList[0][i][1]) / 2f;
+			if (i < cellsWide - 1)
+				cellList[i][0][0] = (cellList[i][0][1] + cellList[i][1][0]) / 2f;
+
+			if (i < cellsWide - 1)
+				cellList[maxWIndex][0][i] = (cellList[maxWIndex - 1][0][i] + cellList[maxWIndex][1][i]) / 2f;
+			if (i < cellsWide - 1)
+				cellList[0][maxHIndex][i] = (cellList[1][maxHIndex][i] + cellList[0][maxHIndex - 1][i]) / 2f;
+
+			if (i < cellsTall - 1)
+				cellList[maxHIndex][i][0] = (cellList[maxHIndex - 1][i][0] + cellList[maxHIndex][i][1]) / 2f;
+			if (i < cellsTall - 1)
+				cellList[0][i][maxHIndex] = (cellList[1][i][maxHIndex] + cellList[0][i][maxHIndex - 1]) / 2f;
+
+			if (i < cellsWide - 1)
+				cellList[i][maxHIndex][0] = (cellList[i][maxHIndex][1] + cellList[i][maxHIndex - 1][0]) / 2f;
+			if (i < cellsWide - 1)
+				cellList[i][0][maxWIndex] = (cellList[i][0][maxWIndex - 1] + cellList[i][1][maxWIndex]) / 2f;
+
+			if (i < cellsWide - 1)
+				cellList[maxWIndex][maxHIndex][i] = (cellList[maxWIndex - 1][maxHIndex][i] + cellList[maxWIndex][maxHIndex - 1][i]) / 2f;
+			if (i < cellsTall - 1)
+				cellList[maxWIndex][i][maxWIndex] = (cellList[maxWIndex - 1][i][maxWIndex] + cellList[maxWIndex][i][maxWIndex - 1]) / 2f;
+			if (i < cellsWide - 1)
+				cellList[i][maxHIndex][maxWIndex] = (cellList[i][maxHIndex][maxWIndex - 1] + cellList[i][maxHIndex - 1][maxWIndex]) / 2f;
+		}
+
+		//"corner" cases
+		cellList[0][0][0] = (cellList[1][0][0] + cellList[0][1][0] + cellList[0][0][1]) / 3f;
+		cellList[maxWIndex][0][0] = (cellList[maxWIndex - 1][0][0] + cellList[maxWIndex][1][0] + cellList[maxWIndex][0][1]) / 3f;
+		cellList[0][maxHIndex][0] = (cellList[1][maxHIndex][0] + cellList[0][maxHIndex - 1][0] + cellList[0][maxHIndex][1]) / 3f;
+		cellList[0][0][maxWIndex] = (cellList[1][0][maxWIndex] + cellList[0][1][maxWIndex] + cellList[0][0][maxWIndex - 1]) / 3f;
+		cellList[maxWIndex][0][maxWIndex] = (cellList[maxWIndex - 1][0][maxWIndex] + cellList[maxWIndex][1][maxWIndex] + cellList[maxWIndex][0][maxWIndex - 1]) / 3f;
+		cellList[maxWIndex][maxHIndex][0] = (cellList[maxWIndex - 1][maxHIndex][0] + cellList[maxWIndex][maxHIndex - 1][0] + cellList[maxWIndex][maxHIndex][1]) / 3f;
+		cellList[0][maxHIndex][maxWIndex] = (cellList[1][maxHIndex][maxWIndex] + cellList[0][maxHIndex - 1][maxWIndex] + cellList[0][maxHIndex][maxWIndex - 1]) / 3f;
+		cellList[maxWIndex][maxHIndex][maxWIndex] = (cellList[maxWIndex - 1][maxHIndex][maxWIndex] + cellList[maxWIndex][maxHIndex - 1][maxWIndex] + cellList[maxWIndex][maxHIndex][maxWIndex]) / 3f;
 	}
 }
