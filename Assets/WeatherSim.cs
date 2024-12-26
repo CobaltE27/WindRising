@@ -25,6 +25,7 @@ public class WeatherSim : MonoBehaviour
     int simCounter = 0;
     List<List<List<TMP_Text>>> debTexts;
     public TMP_Text textTemplate;
+	public List<WeatherSim?> neighborsSims;
 
 	public class CellData
     {
@@ -79,6 +80,10 @@ public class WeatherSim : MonoBehaviour
 				}
             }
         }
+
+		neighborsSims = new List<WeatherSim?>();
+		for (int i = 0; i < 4; i++)
+			neighborsSims.Add(null);
     }
 
     // Update is called once per frame
@@ -98,7 +103,7 @@ public class WeatherSim : MonoBehaviour
             VelocityStep();
             DensityStep();
 
-			//cells = nextCells;
+			cells = nextCells;
 
             for (int x = 0; x < cellsWide; x++)
                 for (int z = 0; z < cellsWide; z++)
@@ -345,11 +350,11 @@ public class WeatherSim : MonoBehaviour
     {
         //add source pressure here if desired
         List<List<List<CellData>>> postDiffuse = InitializeCells();
-		DiffusePressure(cells, postDiffuse, simPeriodS);
-        cells = postDiffuse;
+		DiffusePressure(nextCells, postDiffuse, simPeriodS);
+        nextCells = postDiffuse;
         List<List<List<CellData>>> postAdvect = InitializeCells();
-        AdvectPressure(cells, postAdvect, simPeriodS);
-        cells = postAdvect;
+        AdvectPressure(nextCells, postAdvect, simPeriodS);
+		nextCells = postAdvect;
     }
 
     private void DiffusePressure(List<List<List<CellData>>> current, List<List<List<CellData>>> next, float dt)
@@ -411,22 +416,22 @@ public class WeatherSim : MonoBehaviour
 
 		List<List<List<CellData>>> postVelDiffuse = InitializeCells();
 		DiffuseVelocity(cells, postVelDiffuse, simPeriodS);
-		cells = postVelDiffuse;
+		nextCells = postVelDiffuse;
 		Debug.Log(cells[5][1][5].ToString());
 
 		List<List<List<CellData>>> postProject = InitializeCells();
-		Project(cells, postProject);
-		cells = postProject;
+		Project(nextCells, postProject);
+		nextCells = postProject;
 		Debug.Log(cells[5][1][5].ToString());
 
 		List<List<List<CellData>>> postAdvect = InitializeCells();
-		AdvectVelocity(cells, postAdvect, simPeriodS);
-		cells = postAdvect;
+		AdvectVelocity(nextCells, postAdvect, simPeriodS);
+		nextCells = postAdvect;
 		Debug.Log(cells[5][1][5].ToString());
 
 		List<List<List<CellData>>> postFinalProject = InitializeCells();
-		Project(cells, postFinalProject);
-		cells = postFinalProject;
+		Project(nextCells, postFinalProject);
+		nextCells = postFinalProject;
 		Debug.Log(cells[5][1][5].ToString());
 	}
 
