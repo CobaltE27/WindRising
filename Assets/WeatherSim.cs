@@ -26,6 +26,7 @@ public class WeatherSim : MonoBehaviour
     List<List<List<TMP_Text>>> debTexts;
     public TMP_Text textTemplate;
 	public List<WeatherSim?> neighborsSims;
+	public Mesh debBox;
 
 	public class CellData
     {
@@ -55,7 +56,6 @@ public class WeatherSim : MonoBehaviour
         directions.Add("L", -Vector3.right);
         directions.Add("F", Vector3.forward);
         directions.Add("B", -Vector3.forward);
-		debTexts = new List<List<List<TMP_Text>>>();
 
 		cells = new List<List<List<CellData>>>();
         cellsWide = (int)(squareWidth / cellSquareWidth);
@@ -64,19 +64,14 @@ public class WeatherSim : MonoBehaviour
 		for (int x = 0; x < cellsWide; x++)
         {
             cells.Add(new List<List<CellData>>());
-            debTexts.Add(new List<List<TMP_Text>>());
 
 			for (int y = 0; y < cellsTall; y++)
             {
                 cells[x].Add(new List<CellData>());
-                debTexts[x].Add(new List<TMP_Text>());
 
 				for (int z = 0; z < cellsWide; z++)
                 {
                     cells[x][y].Add(new CellData(Vector3.up, 1, 0.5f));
-                    debTexts[x][y].Add(Instantiate(textTemplate));
-                    debTexts[x][y][z].transform.position = CenterPosFromIndecies(x, y, z);
-                    debTexts[x][y][z].alignment = TextAlignmentOptions.Midline;
 				}
             }
         }
@@ -84,6 +79,7 @@ public class WeatherSim : MonoBehaviour
 		neighborsSims = new List<WeatherSim?>();
 		for (int i = 0; i < 4; i++)
 			neighborsSims.Add(null);
+
     }
 
     // Update is called once per frame
@@ -105,31 +101,33 @@ public class WeatherSim : MonoBehaviour
 
 			cells = nextCells;
 
-            for (int x = 0; x < cellsWide; x++)
-                for (int z = 0; z < cellsWide; z++)
-                    for (int y = 0; y < cellsTall; y++)
-                    {
-                        debTexts[x][y][z].text = cells[x][y][z].pressure.ToString("n1");
-						debTexts[x][y][z].color = new Color (cells[x][y][z].pressure / 20, 0, 0);
-					}
-
 			simCounter = simPeriodS * 50;
 		}
         simCounter--;
 
-		for (int x = 0; x < cellsWide; x++)
-            for (int z = 0; z < cellsWide; z++)
-                for (int y = 0; y < cellsTall; y++)
-                {
-                    Vector3 centerPos = CenterPosFromIndecies(x, y, z);
-                    CellData cell = cells[x][y][z];
-                    Debug.DrawRay(centerPos, cell.wind * 5);
-                }
-
-
         Debug.DrawRay(new Vector3(-1, -1, -1), SampleWind(new Vector3(-1, -1, -1)));
         Debug.DrawRay(new Vector3(-10, -10, -10), SampleWind(new Vector3(-10, -10, -10)));
         Debug.DrawRay(new Vector3(20, 20, 20), SampleWind(new Vector3(20, 20, 20)));
+	}
+
+	void OnDrawGizmos()
+	{
+		if (cells == null)
+			return;
+
+		Gizmos.color = Color.white;
+		for (int x = 0; x < cellsWide; x++)
+			for (int z = 0; z < cellsWide; z++)
+				for (int y = 0; y < cellsTall; y++)
+				{
+					Vector3 centerPos = CenterPosFromIndecies(x, y, z);
+					CellData? cell = cells[x][y][z];
+					if (cell == null)
+						continue;
+					//Debug.DrawRay(centerPos, cell.wind * 5);
+					Gizmos.color = new Color(0, 0, 0, cell.pressure / 20);
+					Gizmos.DrawMesh(debBox, centerPos, Quaternion.identity, cellDims);
+				}
 	}
 
     private Vector3 CenterPosFromIndecies(int x, int y, int z)
@@ -346,7 +344,27 @@ public class WeatherSim : MonoBehaviour
         return cellList;
 	}
 
-    private void DensityStep()
+	private List<List<List<CellData>>> InitializeCells(CellData baseCell)
+	{
+		List<List<List<CellData>>> cellList = new List<List<List<CellData>>>();
+		for (int x = 0; x < cellsWide; x++)
+		{
+			cellList.Add(new List<List<CellData>>());
+
+			for (int y = 0; y < cellsTall; y++)
+			{
+				cellList[x].Add(new List<CellData>());
+
+				for (int z = 0; z < cellsWide; z++)
+				{
+					cellList[x][y].Add(new CellData(baseCell.wind, baseCell.pressure, baseCell.temp));
+				}
+			}
+		}
+		return cellList;
+	}
+
+	private void DensityStep()
     {
         //add source pressure here if desired
         List<List<List<CellData>>> postDiffuse = InitializeCells();
