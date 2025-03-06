@@ -11,6 +11,8 @@ public class InstrumentController : MonoBehaviour
 	public TMP_Text absoluteSpeed;
 	public TMP_Text variometer;
 	public TMP_Text ratio;
+	public AudioSource varioSpeaker;
+	public AnimationCurve varioVolCurve;
 	Vector3 oldPos = Vector3.zero;
 	float highest = 0f;
 	float distanceFromHighest = 0f;
@@ -39,18 +41,21 @@ public class InstrumentController : MonoBehaviour
 	//provide value as m/s
 	public void UpdateVariometer(float value)
 	{
-		float displayValue = value * 60;
-		variometer.text = MathF.Truncate(displayValue) + "\nm/min";
-		if (displayValue >= 0)
+		variometer.text = value.ToString("n2") + "\nm/s";
+		if (value >= 0)
 		{
 			float normedSub = (1 - Mathf.Min(1, value / 5)) * 0.5f;
-			variometer.color = new Color(normedSub, 1, normedSub, 1);		
+			variometer.color = new Color(normedSub, 1, normedSub, 1);
+			varioSpeaker.pitch = 1 + value * 0.7f;
 		}
 		else
 		{
 			float normedSub = (1 - Mathf.Min(1, -value / 5)) * 0.5f;
 			variometer.color = new Color(1, normedSub, normedSub, 1);
+			varioSpeaker.pitch = 1;
 		}
+		varioSpeaker.volume = varioVolCurve.Evaluate(value / 8f); //6 m/s is typically a really good climb
+		Debug.Log(varioVolCurve.Evaluate(-0.2f));
 	}
 
 	public void UpdateRatio(Vector3 position)

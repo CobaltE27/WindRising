@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WindCollider: {fileID: 3713902278518853314}
-  radius: 300
+  radius: 400
   speed: 10
 --- !u!136 &3713902278518853314
 CapsuleCollider:
@@ -67,7 +67,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 300
-  m_Height: 2000
+  m_Radius: 400
+  m_Height: 3000
   m_Direction: 1
-  m_Center: {x: 0, y: 500, z: 0}
+  m_Center: {x: 0, y: 1500, z: 0}
