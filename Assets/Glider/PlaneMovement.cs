@@ -64,8 +64,7 @@ public class PlaneMovement : MonoBehaviour
         Vector3 sampledWind = Vector3.zero;
 		foreach (WindSampler samp in windSamplers.Values)
             sampledWind += 0.5f * (samp.WindAt(rightTip.position) + samp.WindAt(leftTip.position));
-        Debug.Log("sw:" + sampledWind);
-        Vector3 airVel = -vel + staticWind; //account for windspeed and travel through air
+        Vector3 airVel = -vel + staticWind + sampledWind; //account for windspeed and travel through air
 		Debug.DrawRay(rb.position, airVel, Color.green);
 		Vector3 airDir = airVel.normalized;
         float airSpeedSquared = airVel.sqrMagnitude;

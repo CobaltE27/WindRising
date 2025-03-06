@@ -269,6 +269,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 87012227320630002, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
+      propertyPath: field of view
+      value: 90
+      objectReference: {fileID: 0}
     - target: {fileID: 286077555463344924, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -540,16 +544,12 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3713902278518853314, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
-      propertyPath: m_Height
-      value: 2000
-      objectReference: {fileID: 0}
-    - target: {fileID: 3713902278518853314, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
       propertyPath: m_Radius
-      value: 300
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
       propertyPath: radius
-      value: 300
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 8151960280685552904, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
       propertyPath: m_Name
