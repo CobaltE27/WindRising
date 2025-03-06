@@ -71,7 +71,7 @@ public class WeatherSim : MonoBehaviour
 
 				for (int z = 0; z < cellsWide; z++)
                 {
-                    cells[x][y].Add(new CellData(Vector3.up, 1, 0.5f));
+                    cells[x][y].Add(new CellData(Vector3.zero, 1, 0.5f));
 				}
             }
         }
@@ -124,7 +124,7 @@ public class WeatherSim : MonoBehaviour
 					CellData? cell = cells[x][y][z];
 					if (cell == null)
 						continue;
-					//Debug.DrawRay(centerPos, cell.wind * 5);
+					Debug.DrawRay(centerPos, cell.wind * 5);
 					Gizmos.color = new Color(0, 0, 0, cell.pressure / 20);
 					Gizmos.DrawMesh(debBox, centerPos, Quaternion.identity, cellDims);
 				}

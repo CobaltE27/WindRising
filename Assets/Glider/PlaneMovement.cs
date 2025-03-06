@@ -41,9 +41,12 @@ public class PlaneMovement : MonoBehaviour
     private Vector3 gravity = Vector3.down * 9.8f;
     public Rigidbody rb;
     public InstrumentController instruments;
+    public Collider boundingBox;
+    private Dictionary<Collider, WindSampler> windSamplers;
     void Start()
     {
         rb.velocity = rb.transform.forward * startingSpeed;
+        windSamplers = new();
     }
 
     // Update is called once per frame
@@ -58,13 +61,17 @@ public class PlaneMovement : MonoBehaviour
 		Vector3 vel = rb.velocity;
         Vector3 facing = rb.transform.forward;
         Vector3 staticWind = 3 * -Vector3.forward; //sample from weather sim
+        Vector3 sampledWind = Vector3.zero;
+		foreach (WindSampler samp in windSamplers.Values)
+            sampledWind += 0.5f * (samp.WindAt(rightTip.position) + samp.WindAt(leftTip.position));
+        Debug.Log("sw:" + sampledWind);
         Vector3 airVel = -vel + staticWind; //account for windspeed and travel through air
 		Debug.DrawRay(rb.position, airVel, Color.green);
 		Vector3 airDir = airVel.normalized;
         float airSpeedSquared = airVel.sqrMagnitude;
         float forwardAirspeedSquared = Vector3.Dot(rb.transform.forward, -airDir) * airSpeedSquared;
 		Vector3 accum = rb.GetAccumulatedForce(); //initialize forces, should basically always be 0
-                                                  //Debug.Log(accum);
+        //Debug.Log(accum);
 
 		UpdateInstruments(rb.position, vel, Vector3.Dot(rb.transform.forward, -airDir) * airVel.magnitude);
 
@@ -156,5 +163,18 @@ public class PlaneMovement : MonoBehaviour
         instruments.UpdateVariometer(velocity.y);
         instruments.UpdateAltimeter(position.y);
         instruments.UpdateRatio(position);
+	}
+	void OnTriggerEnter(Collider other)
+	{
+        WindSampler? otherSampler = other.gameObject.GetComponent<WindSampler>();
+		if (otherSampler)
+            windSamplers.Add(other, otherSampler);
+	}
+
+	void OnTriggerExit(Collider other)
+	{
+		WindSampler? otherSampler = other.gameObject.GetComponent<WindSampler>();
+		if (otherSampler)
+			windSamplers.Remove(other);
 	}
 }
