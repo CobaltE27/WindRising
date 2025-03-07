@@ -11,12 +11,9 @@ public class InstrumentController : MonoBehaviour
 	public TMP_Text absoluteSpeed;
 	public TMP_Text variometer;
 	public TMP_Text ratio;
+	public TMP_Text climb;
 	public AudioSource varioSpeaker;
 	public AnimationCurve varioVolCurve;
-	Vector3 oldPos = Vector3.zero;
-	float highest = 0f;
-	float distanceFromHighest = 0f;
-	bool hasOldPos = false;
 	// Start is called before the first frame update
 	void Start()
     {
@@ -39,25 +36,47 @@ public class InstrumentController : MonoBehaviour
 	}
 
 	//provide value as m/s
-	public void UpdateVariometer(float value)
+	Vector3 oldVelocity = Vector3.zero;
+	Vector3 oldPosition = Vector3.zero;
+	bool hasOldVario = false;
+	public void UpdateVariometer(Vector3 velocity, Vector3 position)
 	{
-		variometer.text = value.ToString("n2") + "\nm/s";
-		if (value >= 0)
+		if (!hasOldVario)
 		{
-			float normedSub = (1 - Mathf.Min(1, value / 5)) * 0.5f;
+			oldVelocity = velocity;
+			oldPosition = position;
+			hasOldVario = true;
+			return;
+		}
+
+		float deltaH = (position.y - oldPosition.y) / Time.deltaTime;
+		float deltaV = (velocity.magnitude - oldVelocity.magnitude) / Time.deltaTime;
+		print("delH:" + deltaH + " delV:" + deltaV);
+		float compensatedClimb = deltaH +  deltaV * Mathf.Abs(deltaV) / (2 * Physics.gravity.magnitude);//delta energy / mg
+		oldVelocity = velocity;
+		oldPosition = position;
+
+		variometer.text = compensatedClimb.ToString("n2") + "\nm/s";
+		climb.text = deltaH.ToString("n2") + " m/s";
+		if (compensatedClimb >= 0)
+		{
+			float normedSub = (1 - Mathf.Min(1, compensatedClimb / 5)) * 0.5f;
 			variometer.color = new Color(normedSub, 1, normedSub, 1);
-			varioSpeaker.pitch = 1 + value * 0.7f;
+			varioSpeaker.pitch = 1 + compensatedClimb * 0.7f;
 		}
 		else
 		{
-			float normedSub = (1 - Mathf.Min(1, -value / 5)) * 0.5f;
+			float normedSub = (1 - Mathf.Min(1, -compensatedClimb / 5)) * 0.5f;
 			variometer.color = new Color(1, normedSub, normedSub, 1);
 			varioSpeaker.pitch = 1;
 		}
-		varioSpeaker.volume = varioVolCurve.Evaluate(value / 8f); //6 m/s is typically a really good climb
-		Debug.Log(varioVolCurve.Evaluate(-0.2f));
+		varioSpeaker.volume = varioVolCurve.Evaluate(compensatedClimb / 8f); //6 m/s is typically a really good climb
 	}
 
+	Vector3 oldPos = Vector3.zero;
+	float highest = 0f;
+	float distanceFromHighest = 0f;
+	bool hasOldPos = false;
 	public void UpdateRatio(Vector3 position)
 	{
 		if (position.y > highest)

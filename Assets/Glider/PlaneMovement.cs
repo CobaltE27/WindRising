@@ -159,7 +159,7 @@ public class PlaneMovement : MonoBehaviour
     {
         instruments.UpdateAirspeed(airspeed);
         instruments.UpdateAbsoluteSpeed(velocity.magnitude);
-        instruments.UpdateVariometer(velocity.y);
+        instruments.UpdateVariometer(velocity, position);
         instruments.UpdateAltimeter(position.y);
         instruments.UpdateRatio(position);
 	}
