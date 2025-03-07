@@ -370,6 +370,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1379182265776061231, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
+      propertyPath: varioPitchSensitivity
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1636713341156631960, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
+      propertyPath: m_audioClip
+      value: 
+      objectReference: {fileID: 8300000, guid: df2f53dd923ab20448aa0f32a9b308e0, type: 3}
     - target: {fileID: 2135527206325520807, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
       propertyPath: startingSpeed
       value: 40

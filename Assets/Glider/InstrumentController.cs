@@ -14,6 +14,7 @@ public class InstrumentController : MonoBehaviour
 	public TMP_Text climb;
 	public AudioSource varioSpeaker;
 	public AnimationCurve varioVolCurve;
+	public float varioPitchSensitivity = 0.7f;
 	// Start is called before the first frame update
 	void Start()
     {
@@ -62,7 +63,7 @@ public class InstrumentController : MonoBehaviour
 		{
 			float normedSub = (1 - Mathf.Min(1, compensatedClimb / 5)) * 0.5f;
 			variometer.color = new Color(normedSub, 1, normedSub, 1);
-			varioSpeaker.pitch = 1 + compensatedClimb * 0.7f;
+			varioSpeaker.pitch = 1 + compensatedClimb * varioPitchSensitivity;
 		}
 		else
 		{
