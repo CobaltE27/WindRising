@@ -47,7 +47,51 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WindCollider: {fileID: 3713902278518853314}
   radius: 400
+  cloudBaseHeight: 3000
   speed: 10
+  strengthByDistance:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.75
+      value: 0.7525146
+      inSlope: -0.7684962
+      outSlope: -0.7684962
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.2163518
+      outWeight: 0.83468443
+    - serializedVersion: 3
+      time: 0.90000004
+      value: -0.09902856
+      inSlope: -0.005908334
+      outSlope: -0.005908334
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 1
+    - serializedVersion: 3
+      time: 1
+      value: 0.0000058615115
+      inSlope: -0.008119371
+      outSlope: -0.008119371
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 1
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  prevailingWind: {x: 0, y: 0, z: 0}
 --- !u!136 &3713902278518853314
 CapsuleCollider:
   m_ObjectHideFlags: 0

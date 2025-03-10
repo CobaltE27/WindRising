@@ -52,7 +52,7 @@ public class InstrumentController : MonoBehaviour
 
 		float deltaH = (position.y - oldPosition.y) / Time.deltaTime;
 		float deltaV = (velocity.magnitude - oldVelocity.magnitude) / Time.deltaTime;
-		print("delH:" + deltaH + " delV:" + deltaV);
+		//print("delH:" + deltaH + " delV:" + deltaV);
 		float compensatedClimb = deltaH +  deltaV * Mathf.Abs(deltaV) / (2 * Physics.gravity.magnitude);//delta energy / mg
 		oldVelocity = velocity;
 		oldPosition = position;

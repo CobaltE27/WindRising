@@ -60,7 +60,7 @@ public class PlaneMovement : MonoBehaviour
 
 		Vector3 vel = rb.velocity;
         Vector3 facing = rb.transform.forward;
-        Vector3 staticWind = 3 * -Vector3.forward; //sample from weather sim
+        Vector3 staticWind = new Vector3(1, 0, 1); //sample from weather sim
         Vector3 sampledWind = Vector3.zero;
 		foreach (WindSampler samp in windSamplers.Values)
             sampledWind += 0.5f * (samp.WindAt(rightTip.position) + samp.WindAt(leftTip.position));

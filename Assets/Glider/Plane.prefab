@@ -604,7 +604,7 @@ MonoBehaviour:
   elevatorStrength: 0.0001
   controlDragCoeff: 0.0001
   glideCoeff: 0.23
-  startingSpeed: 30
+  startingSpeed: 40
   rightTip: {fileID: 6021211257385703741}
   leftTip: {fileID: 4690546116956286780}
   tailPoint: {fileID: 1528468828445139394}
@@ -691,6 +691,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  varioPitchSensitivity: 0.7
 --- !u!65 &4550915218239608116
 BoxCollider:
   m_ObjectHideFlags: 0
