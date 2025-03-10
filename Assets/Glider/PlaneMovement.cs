@@ -54,7 +54,9 @@ public class PlaneMovement : MonoBehaviour
     public InstrumentController instruments;
     public Collider boundingBox;
     private Dictionary<Collider, WindSampler> windSamplers;
-    void Start()
+    public float wingLiftTorque;
+
+	void Start()
     {
         rb.velocity = rb.transform.forward * startingSpeed;
         windSamplers = new();
@@ -72,10 +74,15 @@ public class PlaneMovement : MonoBehaviour
 		Vector3 vel = rb.velocity;
         Vector3 facing = rb.transform.forward;
         Vector3 staticWind = new Vector3(1, 0, 1); //sample from weather sim
-        Vector3 sampledWind = Vector3.zero;
+        Vector3 rSampledWind = Vector3.zero;
+        Vector3 lSampledWind = Vector3.zero;
 		foreach (WindSampler samp in windSamplers.Values)
-            sampledWind += 0.5f * (samp.WindAt(rightTip.position) + samp.WindAt(leftTip.position));
-        Vector3 airVel = -vel + staticWind + sampledWind; //account for windspeed and travel through air
+        {
+            rSampledWind += samp.WindAt(rightTip.position);
+            lSampledWind += samp.WindAt(leftTip.position);
+		}
+		Vector3 sampledWind = (rSampledWind + lSampledWind) / 2;
+		Vector3 airVel = -vel + staticWind + sampledWind; //account for windspeed and travel through air
 		Debug.DrawRay(rb.position, airVel, Color.green);
 		Vector3 airDir = airVel.normalized;
         float airSpeedSquared = airVel.sqrMagnitude;
@@ -116,6 +123,7 @@ public class PlaneMovement : MonoBehaviour
 		Debug.DrawRay(leftTip.position, leftLift, Color.cyan);
         rb.AddForceAtPosition(-rb.transform.forward * rAileronForce * controlDragCoeff, rightTip.position + wingOffset);
         rb.AddForceAtPosition(-rb.transform.forward * lAileronForce * controlDragCoeff, leftTip.position + wingOffset);
+        rb.AddRelativeTorque(0, 0, (-Vector3.Dot(lSampledWind, transform.up) + Vector3.Dot(rSampledWind, transform.up)) * wingLiftTorque); //positive value turn couterclockwise, banking toward left wing
 
         Vector3 tailBias = -rb.transform.up * tailBiasFactor * forwardAirspeedSquared;
         Vector3 centeringDir = ((Vector3.Dot(airDir, -rb.transform.forward)) * airDir - (-rb.transform.forward)).normalized;
