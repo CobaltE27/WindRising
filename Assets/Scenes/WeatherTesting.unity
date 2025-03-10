@@ -669,6 +669,54 @@ PrefabInstance:
       propertyPath: prevailingWind.z
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[1].time
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[2].time
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[1].value
+      value: 0.69999444
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[2].value
+      value: 0.0000058615115
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[1].inSlope
+      value: -1.2372192
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[2].inSlope
+      value: -0.008119371
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[1].outSlope
+      value: -1.2372192
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[2].inWeight
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[2].outSlope
+      value: -0.008119371
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[1].outWeight
+      value: 0.34291628
+      objectReference: {fileID: 0}
+    - target: {fileID: 6369360243645713924, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
+      propertyPath: strengthByDistance.m_Curve.Array.data[2].outWeight
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8151960280685552904, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
       propertyPath: m_Name
       value: Thermal

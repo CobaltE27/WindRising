@@ -18,6 +18,17 @@ public class PlaneMovement : MonoBehaviour
         public float back { get; }
         public float sides { get; }
 		public float topBottom { get; }
+
+        public Dictionary<Vector3, float> PairWithDirections(Rigidbody rb) {
+			Dictionary<Vector3, float> pairs = new();
+			pairs.Add(rb.transform.forward, forward);
+			pairs.Add(-rb.transform.forward, back);
+			pairs.Add(rb.transform.up, topBottom);
+			pairs.Add(-rb.transform.up, topBottom);
+			pairs.Add(rb.transform.right, sides);
+			pairs.Add(-rb.transform.right, sides);
+            return pairs;
+        }
 	}
 
 	// Start is called before the first frame update
@@ -78,14 +89,7 @@ public class PlaneMovement : MonoBehaviour
 		accum += gravity * rb.mass; //apply gravity
 
         Vector3 drag = Vector3.zero;
-        Dictionary<Vector3, float> coeffs = new Dictionary<Vector3, float>();
-        coeffs.Add(rb.transform.forward, resCoeffs.forward);
-		coeffs.Add(-rb.transform.forward, resCoeffs.back);
-		coeffs.Add(rb.transform.up, resCoeffs.topBottom);
-		coeffs.Add(-rb.transform.up, resCoeffs.topBottom);
-		coeffs.Add(rb.transform.right, resCoeffs.sides);
-		coeffs.Add(-rb.transform.right, resCoeffs.sides);
-        foreach (KeyValuePair<Vector3, float> dir in coeffs)
+        foreach (KeyValuePair<Vector3, float> dir in resCoeffs.PairWithDirections(rb))
         {
             float relevence = Vector3.Dot(dir.Key, -airDir); //how much this side of the aircraft is facing the wind
             if (relevence <= 0) //this side faces away from the wind
