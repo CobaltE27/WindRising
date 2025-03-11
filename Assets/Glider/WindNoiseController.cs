@@ -10,7 +10,7 @@ public class WindNoiseController : MonoBehaviour
     public void SetWindNoise(Vector3 airVel)
     {
         transform.position = airVel.normalized;
-        windSpeaker.volume = windVolume.Evaluate(airVel.magnitude / 100f) * 0.5f;
+        windSpeaker.volume = windVolume.Evaluate(airVel.magnitude / 100f) * 0.7f;
         windSpeaker.pitch = 1f + windPitch.Evaluate((airVel.magnitude - 30) / 100f);
 	}
 }
