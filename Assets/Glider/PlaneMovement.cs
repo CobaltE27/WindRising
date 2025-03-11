@@ -52,6 +52,7 @@ public class PlaneMovement : MonoBehaviour
     private Vector3 gravity = Vector3.down * 9.8f;
     public Rigidbody rb;
     public InstrumentController instruments;
+    public WindNoiseController windNoise;
     public Collider boundingBox;
     private Dictionary<Collider, WindSampler> windSamplers;
     public float wingLiftTorque;
@@ -134,6 +135,8 @@ public class PlaneMovement : MonoBehaviour
 
 		Debug.DrawRay(rb.position, accum, Color.black);
 		rb.AddForce(accum);
+
+        windNoise.SetWindNoise(airVel);
     }
 
     void InterpretControls() //Use WASD to control elevator and ailerons
