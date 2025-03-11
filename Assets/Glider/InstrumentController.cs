@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -15,13 +17,47 @@ public class InstrumentController : MonoBehaviour
 	public AudioSource varioSpeaker;
 	public AnimationCurve varioVolCurve;
 	public float varioPitchSensitivity = 0.7f;
+	List<AudioClip> playlist;
+	public string playlistPath;
+	bool radioOn = false;
+	public AudioSource radioSpeaker;
 	// Start is called before the first frame update
 	void Start()
     {
-        
+		playlist = Resources.LoadAll<AudioClip>(playlistPath).ToList();
     }
 
-    public void UpdateAirspeed(float value)
+	private void Update()
+	{
+		if (Input.GetKeyDown(KeyCode.Backslash))
+		{
+			if (radioOn)
+				radioSpeaker.mute = true;
+			else
+			{
+				radioSpeaker.mute = false;
+				NextRadio();
+				radioSpeaker.Play();
+			}
+
+			radioOn = !radioOn;
+		}
+
+		if (radioOn && Input.GetKeyDown(KeyCode.RightBracket))
+		{
+			radioSpeaker.Pause();
+			NextRadio();
+			radioSpeaker.Play();
+		}
+	}
+
+	private void NextRadio()
+	{
+		System.Random rng = new();
+		radioSpeaker.clip = playlist[rng.Next(playlist.Count)];
+	}
+
+	public void UpdateAirspeed(float value)
     {
 		airspeed.text = value.ToString("n1") + "\nm/s";
     }
