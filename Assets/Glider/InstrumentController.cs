@@ -99,7 +99,7 @@ public class InstrumentController : MonoBehaviour
 		{
 			float normedSub = (1 - Mathf.Min(1, compensatedClimb / 5)) * 0.5f;
 			variometer.color = new Color(normedSub, 1, normedSub, 1);
-			varioSpeaker.pitch = 1 + compensatedClimb * varioPitchSensitivity;
+			varioSpeaker.pitch = 0.5f + compensatedClimb * varioPitchSensitivity;
 		}
 		else
 		{
@@ -107,7 +107,7 @@ public class InstrumentController : MonoBehaviour
 			variometer.color = new Color(1, normedSub, normedSub, 1);
 			varioSpeaker.pitch = 1;
 		}
-		varioSpeaker.volume = varioVolCurve.Evaluate(compensatedClimb / 8f); //6 m/s is typically a really good climb
+		varioSpeaker.volume = varioVolCurve.Evaluate(compensatedClimb / 8f) * 0.4f; //6 m/s is typically a really good climb
 	}
 
 	Vector3 oldPos = Vector3.zero;

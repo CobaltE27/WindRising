@@ -28,7 +28,7 @@ public class CameraController : MonoBehaviour
     {
 		Vector3 velChange = rb.velocity - lastVel;
         velChange = velChange.normalized * (Mathf.Min(1f, velChange.magnitude) * 0.5f);
-		transform.localPosition = Vector3.Lerp(transform.localPosition, -velChange, 0.1f);
+		transform.localPosition = Vector3.Lerp(transform.localPosition, -velChange * 0.5f, 0.1f);
 		lastVel = rb.velocity;
 	}
 }

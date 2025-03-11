@@ -551,6 +551,7 @@ GameObject:
   - component: {fileID: 4386027159837571778}
   - component: {fileID: 1379182265776061231}
   - component: {fileID: 4550915218239608116}
+  - component: {fileID: 964392570424542811}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -671,14 +672,14 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0.39166668
     - serializedVersion: 3
-      time: 0.3
+      time: 0.12916668
       value: 0.70003545
-      inSlope: 1.5044943
-      outSlope: 1.5044943
+      inSlope: 0.0024928367
+      outSlope: 0.0024928367
       tangentMode: 0
       weightedMode: 0
       inWeight: 1
-      outWeight: 0.14166665
+      outWeight: 0.20095694
     - serializedVersion: 3
       time: 1
       value: 1
@@ -715,6 +716,30 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!167 &964392570424542811
+AudioReverbZone:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3908729247863725499}
+  m_Enabled: 1
+  m_MinDistance: 10
+  m_MaxDistance: 15
+  m_ReverbPreset: 27
+  m_Room: -400
+  m_RoomHF: -454
+  m_DecayTime: 0.4
+  m_DecayHFRatio: 0.83
+  m_Reflections: -1646
+  m_ReflectionsDelay: 0.002
+  m_Reverb: 40
+  m_ReverbDelay: 0.002
+  m_HFReference: 5000
+  m_Diffusion: 100
+  m_Density: 100
+  m_LFReference: 250
+  m_RoomLF: 0
 --- !u!1 &3989692860705021045
 GameObject:
   m_ObjectHideFlags: 0
