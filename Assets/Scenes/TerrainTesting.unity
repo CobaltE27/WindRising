@@ -267,6 +267,39 @@ MonoBehaviour:
   squareWidth: 1000
   height: 3000
   renderRadius: 2
+  broadBias:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5562548
+      value: 0.101948135
+      inSlope: -0.008344739
+      outSlope: -0.008344739
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.28000444
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 5.886798
+      outSlope: 5.886798
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.04694882
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &811912120
 PrefabInstance:
   m_ObjectHideFlags: 0

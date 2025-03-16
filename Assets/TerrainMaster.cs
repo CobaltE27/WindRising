@@ -13,7 +13,7 @@ public class TerrainMaster : MonoBehaviour
     public float squareWidth;
     public float height;
     public int renderRadius;
-
+    public AnimationCurve broadBias;
 
 	void Start()
     {
@@ -52,14 +52,14 @@ public class TerrainMaster : MonoBehaviour
 
     Terrain CreateAtKey(Point posKey)
     {
-        Debug.Log("trying at: " + posKey);
         Terrain newT = Instantiate(baseTerrain, this.transform);
         newT.gameObject.name = "Terrain(x:" + posKey.X + ", z:" + posKey.Y + ")";
         newT.gameObject.SetActive(true);
         newT.transform.position = PositionedAt(posKey);
 
         //Set new terrain's values
-            //generate and set terrainData
+        //generate and set terrainData
+        SetDataFor(posKey, newT);
         Terrain[] neighbors = new Terrain[4]; 
         if (terrains.TryGetValue(new Point(posKey.X + 1, posKey.Y), out Terrain leftNeigh)) //+X
         {
@@ -97,5 +97,30 @@ public class TerrainMaster : MonoBehaviour
     Vector3 PositionedAt(Point positionKey)
     {
         return new Vector3(positionKey.X * squareWidth, 0, positionKey.Y * squareWidth);
+    }
+
+    void SetDataFor(Point posKey, Terrain target)
+    {
+        TerrainData newData = new();
+		newData.heightmapResolution = (int)squareWidth / 4;
+        int resolution = newData.heightmapResolution;
+        newData.size = new Vector3(squareWidth, height, squareWidth);
+        float[,] heights = new float[resolution, resolution];
+		Vector3 position = new Vector3(posKey.X * squareWidth, 0, posKey.Y * squareWidth);
+        Debug.Log(position);
+		for (int x = 0; x < resolution; x++)
+            for (int z = 0; z < resolution; z++)
+                heights[z, x] = HeightAt(posKey, x, z, resolution);
+        newData.SetHeights(0, 0, heights);
+        target.terrainData = newData;
+    }
+
+    float HeightAt(Point posKey, int x, int z, int resolution)
+    {
+        Vector3 worldPosition = new Vector3(posKey.X * squareWidth, 0, posKey.Y * squareWidth);
+		worldPosition.x += x * (squareWidth / resolution);
+        worldPosition.z += z * (squareWidth / resolution);
+        Vector3 broadScaledPos = worldPosition / 1000f;
+        return broadBias.Evaluate(Mathf.PerlinNoise(broadScaledPos.x, broadScaledPos.z));
     }
 }
