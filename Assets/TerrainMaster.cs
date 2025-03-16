@@ -60,6 +60,7 @@ public class TerrainMaster : MonoBehaviour
         //Set new terrain's values
         //generate and set terrainData
         SetDataFor(posKey, newT);
+        newT.GetComponent<TerrainCollider>().terrainData = newT.terrainData;
         Terrain[] neighbors = new Terrain[4]; 
         if (terrains.TryGetValue(new Point(posKey.X + 1, posKey.Y), out Terrain leftNeigh)) //+X
         {
@@ -120,9 +121,10 @@ public class TerrainMaster : MonoBehaviour
         Vector3 worldPosition = new Vector3(posKey.X * squareWidth, 0, posKey.Y * squareWidth);
 		worldPosition.x += x * (squareWidth / resolution);
         worldPosition.z += z * (squareWidth / resolution);
-        Vector3 broadScaledPos = worldPosition / 1000f;
+        Vector3 perlinPosition = worldPosition + new Vector3(perlinOffset.x, 0, perlinOffset.y);
+        Vector3 broadScaledPos = perlinPosition / 1000f;
         float broadFactor = broadBias.Evaluate(Mathf.PerlinNoise(broadScaledPos.x, broadScaledPos.z));
-        Vector3 localScaledPos = worldPosition / 100f;
+        Vector3 localScaledPos = perlinPosition / 100f;
         float localFactor = (100f / height) * Mathf.PerlinNoise(localScaledPos.x, localScaledPos.z);
 		return broadFactor + localFactor;
     }
