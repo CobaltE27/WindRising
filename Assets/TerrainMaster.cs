@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing; //for point struct
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class TerrainMaster : MonoBehaviour
@@ -17,8 +16,9 @@ public class TerrainMaster : MonoBehaviour
 
 	void Start()
     {
-        System.Random rng = new();
-        perlinOffset = new Vector2((float)rng.NextDouble(), (float)rng.NextDouble());
+        Random.InitState(System.DateTime.Now.Millisecond);
+		perlinOffset = Vector2.zero;
+		perlinOffset = new Vector2(Random.Range(-20000000f, 20000000f), Random.Range(-20000000f, 20000000f));
         terrains = new();
 		StartCoroutine(UpdateTerrain());
 	}
@@ -107,8 +107,6 @@ public class TerrainMaster : MonoBehaviour
         int resolution = newData.heightmapResolution;
         newData.size = new Vector3(squareWidth, height, squareWidth);
         float[,] heights = new float[resolution, resolution];
-		Vector3 position = new Vector3(posKey.X * squareWidth, 0, posKey.Y * squareWidth);
-        Debug.Log(position);
 		for (int x = 0; x < resolution; x++)
             for (int z = 0; z < resolution; z++)
                 heights[z, x] = HeightAt(posKey, x, z, resolution);
@@ -122,10 +120,10 @@ public class TerrainMaster : MonoBehaviour
 		worldPosition.x += x * (squareWidth / resolution);
         worldPosition.z += z * (squareWidth / resolution);
         Vector3 perlinPosition = worldPosition + new Vector3(perlinOffset.x, 0, perlinOffset.y);
-        Vector3 broadScaledPos = perlinPosition / 1000f;
+        Vector3 broadScaledPos = perlinPosition / 3000f;
         float broadFactor = broadBias.Evaluate(Mathf.PerlinNoise(broadScaledPos.x, broadScaledPos.z));
-        Vector3 localScaledPos = perlinPosition / 100f;
-        float localFactor = (100f / height) * Mathf.PerlinNoise(localScaledPos.x, localScaledPos.z);
+        Vector3 localScaledPos = perlinPosition / 800f;
+        float localFactor = (300f / height) * Mathf.PerlinNoise(localScaledPos.x, localScaledPos.z);
 		return broadFactor + localFactor;
     }
 }
