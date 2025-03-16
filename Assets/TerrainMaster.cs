@@ -20,11 +20,20 @@ public class TerrainMaster : MonoBehaviour
         System.Random rng = new();
         perlinOffset = new Vector2((float)rng.NextDouble(), (float)rng.NextDouble());
         terrains = new();
+		StartCoroutine(UpdateTerrain());
+	}
+
+	void FixedUpdate()
+    {
     }
 
-    void FixedUpdate()
+    IEnumerator UpdateTerrain()
     {
-        GenerateInRadius();
+        while (true)
+        {
+			GenerateInRadius();
+			yield return new WaitForSeconds(1f);
+		}
     }
 
     void GenerateInRadius()

@@ -266,7 +266,7 @@ MonoBehaviour:
   playerTrans: {fileID: 811912121}
   squareWidth: 1000
   height: 3000
-  renderRadius: 1
+  renderRadius: 2
 --- !u!1001 &811912120
 PrefabInstance:
   m_ObjectHideFlags: 0
