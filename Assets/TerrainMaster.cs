@@ -121,6 +121,9 @@ public class TerrainMaster : MonoBehaviour
 		worldPosition.x += x * (squareWidth / resolution);
         worldPosition.z += z * (squareWidth / resolution);
         Vector3 broadScaledPos = worldPosition / 1000f;
-        return broadBias.Evaluate(Mathf.PerlinNoise(broadScaledPos.x, broadScaledPos.z));
+        float broadFactor = broadBias.Evaluate(Mathf.PerlinNoise(broadScaledPos.x, broadScaledPos.z));
+        Vector3 localScaledPos = worldPosition / 100f;
+        float localFactor = (100f / height) * Mathf.PerlinNoise(localScaledPos.x, localScaledPos.z);
+		return broadFactor + localFactor;
     }
 }
