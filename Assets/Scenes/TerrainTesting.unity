@@ -235,7 +235,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 286077555463344924, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1000
+      value: 2000
       objectReference: {fileID: 0}
     - target: {fileID: 286077555463344924, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
       propertyPath: m_LocalPosition.z
@@ -342,6 +342,14 @@ PrefabInstance:
     - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
       propertyPath: renderRadius
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
+      propertyPath: broadBias.m_Curve.Array.data[1].time
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
+      propertyPath: broadBias.m_Curve.Array.data[1].value
+      value: 0.15000987
       objectReference: {fileID: 0}
     - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
       propertyPath: broadBias.m_Curve.Array.data[2].inSlope
