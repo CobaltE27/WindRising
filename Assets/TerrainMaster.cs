@@ -39,14 +39,19 @@ public class TerrainMaster : MonoBehaviour
     void GenerateInRadius()
     {
         Point playerCoords = ContainedIn(playerTrans);
+        bool terrChanged = false;
         for (int keyX = playerCoords.X - renderRadius; keyX <= playerCoords.X + renderRadius; keyX++)
 			for (int keyZ = playerCoords.Y - renderRadius; keyZ <= playerCoords.Y + renderRadius; keyZ++)
             {
                 Point potentialPoint = new Point(keyX, keyZ);
                 if (!terrains.TryGetValue(potentialPoint, out Terrain preExistingTerrain)) //if no terrain there currently
+                {
                     terrains.Add(potentialPoint, CreateAtKey(potentialPoint));
+                    terrChanged = true;
+                }
             }
-
+        if (terrChanged)
+            Terrain.SetConnectivityDirty();
         //Unload outside terrains (aquired via .activeTerrains)
 	}
 
@@ -66,7 +71,7 @@ public class TerrainMaster : MonoBehaviour
         {
             leftNeigh.SetNeighbors(leftNeigh.leftNeighbor, leftNeigh.topNeighbor, newT, leftNeigh.bottomNeighbor);
             neighbors[0] = leftNeigh;
-        }
+		}
 		if (terrains.TryGetValue(new Point(posKey.X - 1, posKey.Y), out Terrain rightNeigh)) //-X
 		{
 			rightNeigh.SetNeighbors(newT, rightNeigh.topNeighbor, rightNeigh.rightNeighbor, rightNeigh.bottomNeighbor);
@@ -83,7 +88,6 @@ public class TerrainMaster : MonoBehaviour
 			neighbors[3] = bottomNeigh;
 		}
 		newT.SetNeighbors(neighbors[0], neighbors[1], neighbors[2], neighbors[3]);
-
 		return newT;
     }
 
@@ -117,8 +121,8 @@ public class TerrainMaster : MonoBehaviour
     float HeightAt(Point posKey, int x, int z, int resolution)
     {
         Vector3 worldPosition = new Vector3(posKey.X * squareWidth, 0, posKey.Y * squareWidth);
-		worldPosition.x += x * (squareWidth / resolution);
-        worldPosition.z += z * (squareWidth / resolution);
+		worldPosition.x += (x * squareWidth) / (resolution - 1);
+        worldPosition.z += (z * squareWidth) / (resolution - 1);
         Vector3 perlinPosition = worldPosition + new Vector3(perlinOffset.x, 0, perlinOffset.y);
         Vector3 broadScaledPos = perlinPosition / 3000f;
         float broadFactor = broadBias.Evaluate(Mathf.PerlinNoise(broadScaledPos.x, broadScaledPos.z));

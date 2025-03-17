@@ -343,6 +343,18 @@ PrefabInstance:
       propertyPath: renderRadius
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
+      propertyPath: broadBias.m_Curve.Array.data[2].inSlope
+      value: 0.22947496
+      objectReference: {fileID: 0}
+    - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
+      propertyPath: broadBias.m_Curve.Array.data[2].inWeight
+      value: 0.34742153
+      objectReference: {fileID: 0}
+    - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
+      propertyPath: broadBias.m_Curve.Array.data[2].outSlope
+      value: 0.22947496
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
