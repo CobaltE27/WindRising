@@ -617,6 +617,8 @@ MonoBehaviour:
   wingLiftTorque: 0.1
   rudderPos: 0
   rudderStrength: 0.00005
+  airBrakePos: 0
+  airBrakeStrength: 0.02
 --- !u!54 &4386027159837571778
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -637,7 +639,7 @@ Rigidbody:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_ImplicitCom: 1
+  m_ImplicitCom: 0
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0

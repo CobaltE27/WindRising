@@ -58,6 +58,8 @@ public class PlaneMovement : MonoBehaviour
     public float wingLiftTorque;
     public float rudderPos;
     public float rudderStrength;
+    public float airBrakePos;
+    public float airBrakeStrength;
 
 	void Start()
     {
@@ -139,6 +141,9 @@ public class PlaneMovement : MonoBehaviour
 		rb.AddForceAtPosition(tailForce, tailPoint.position); //added on the back of the craft like force from tail/rudder, just removing actual backward drag component
         Debug.DrawRay(tailPoint.position, tailForce, Color.blue);
 
+        float airBrakeForce = forwardAirspeedSquared * airBrakePos * airBrakeStrength;
+		rb.AddForce(-rb.transform.forward * airBrakeForce);
+
 		Debug.DrawRay(rb.position, accum, Color.black);
 		rb.AddForce(accum);
 
@@ -184,6 +189,12 @@ public class PlaneMovement : MonoBehaviour
 			rudTarget -= 0.5f;
 		}
 		rudderPos = rudderPos + (rudTarget - rudderPos) * 0.1f;
+		float abTarget = 0f;
+		if (Input.GetKey(KeyCode.X))
+		{
+			abTarget += 0.5f;
+		}
+		airBrakePos = airBrakePos + (abTarget - airBrakePos) * 0.1f;
 	}
 
     void UpdateInstruments(Vector3 position, Vector3 velocity, float airspeed)
