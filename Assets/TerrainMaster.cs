@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing; //for point struct
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class TerrainMaster : MonoBehaviour
@@ -13,6 +14,10 @@ public class TerrainMaster : MonoBehaviour
     public float height;
     public int renderRadius;
     public AnimationCurve broadBias;
+    public Light sun;
+    public float dayMinutes;
+    public int dayDivisions;
+    private float sunUpdateDurationS;
 
 	void Start()
     {
@@ -21,6 +26,8 @@ public class TerrainMaster : MonoBehaviour
 		perlinOffset = new Vector2(Random.Range(-20000000f, 20000000f), Random.Range(-20000000f, 20000000f));
         terrains = new();
 		StartCoroutine(UpdateTerrain());
+        sunUpdateDurationS = (dayMinutes * 60) / dayDivisions;
+        StartCoroutine(UpdateSun());
 	}
 
 	void FixedUpdate()
@@ -36,7 +43,20 @@ public class TerrainMaster : MonoBehaviour
 		}
     }
 
-    void GenerateInRadius()
+	IEnumerator UpdateSun()
+	{
+        float rotationStep = 180f / dayDivisions;
+        sun.transform.localEulerAngles = new Vector3(70, 0, 0); //set latitude
+        sun.transform.Rotate(0, 0, -90, Space.World);
+		while (sun.transform.forward.y < 0.15f) //rotate past horizon then stop
+		{
+			yield return new WaitForSeconds(sunUpdateDurationS);
+			sun.transform.Rotate(0, 0, rotationStep, Space.World);
+		}
+        yield break;
+	}
+
+	void GenerateInRadius()
     {
         Point playerCoords = ContainedIn(playerTrans);
         bool terrChanged = false;
