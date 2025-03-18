@@ -15,18 +15,19 @@ public class ThermalSampler : WindSampler
 	{
 		Vector3 horiWind = new Vector3(prevailingWind.x, 0, prevailingWind.z);
 		CapsuleCollider collider = (CapsuleCollider)WindCollider;
+		float length = (cloudBaseHeight - transform.position.y) + 2 * collider.radius;
 		if (horiWind.magnitude != 0)
 		{
 			float slope = speed / horiWind.magnitude;
 			float slopeAngle = Mathf.Atan(slope);
-			collider.height = (cloudBaseHeight - transform.position.y) / Mathf.Sin(slopeAngle);
+			collider.height = length / Mathf.Sin(slopeAngle);
 			transform.Rotate(90 - Mathf.Rad2Deg * slopeAngle, Vector3.SignedAngle(transform.forward, horiWind, Vector3.up), 0);
 		}
 		else
 		{
-			collider.height = cloudBaseHeight - transform.position.y;
+			collider.height = length;
 		}
-		collider.center = new Vector3(0, collider.height / 2, 0);
+		collider.center = new Vector3(0, collider.height / 2 - collider.radius, 0);
 	}
 
 	/// <summary>

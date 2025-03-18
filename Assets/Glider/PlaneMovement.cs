@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlaneMovement : MonoBehaviour
@@ -78,14 +79,22 @@ public class PlaneMovement : MonoBehaviour
 
 		Vector3 vel = rb.velocity;
         Vector3 facing = rb.transform.forward;
-        Vector3 staticWind = new Vector3(1, 0, 1); //sample from weather sim
+        Vector3 staticWind = new Vector3(1, 0, 1); //TODO: sample from weather sim
+
         Vector3 rSampledWind = Vector3.zero;
         Vector3 lSampledWind = Vector3.zero;
-		foreach (WindSampler samp in windSamplers.Values)
+        List<Collider> deadKeys = new();
+		foreach (var sampPair in windSamplers)
         {
-            rSampledWind += samp.WindAt(rightTip.position);
+            WindSampler samp = sampPair.Value;
+            if (samp == null)
+                continue;
+			rSampledWind += samp.WindAt(rightTip.position);
             lSampledWind += samp.WindAt(leftTip.position);
 		}
+        foreach (var k in deadKeys)
+            windSamplers.Remove(k);
+
 		Vector3 sampledWind = (rSampledWind + lSampledWind) / 2;
 		Vector3 airVel = -vel + staticWind + sampledWind; //account for windspeed and travel through air
 		Debug.DrawRay(rb.position, airVel, Color.green);
@@ -142,7 +151,7 @@ public class PlaneMovement : MonoBehaviour
         Debug.DrawRay(tailPoint.position, tailForce, Color.blue);
 
         float airBrakeForce = forwardAirspeedSquared * airBrakePos * airBrakeStrength;
-		rb.AddForce(-rb.transform.forward * airBrakeForce);
+		accum += -rb.transform.forward * airBrakeForce;
 
 		Debug.DrawRay(rb.position, accum, Color.black);
 		rb.AddForce(accum);
