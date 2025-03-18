@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Drawing; //for point struct
 using Unity.VisualScripting;
 using UnityEngine;
+using Random = UnityEngine.Random;
+using Color = UnityEngine.Color;
 
 public class TerrainMaster : MonoBehaviour
 {
@@ -19,28 +21,34 @@ public class TerrainMaster : MonoBehaviour
     public int dayDivisions;
     private float sunUpdateDurationS;
     Dictionary<Point, Chunk> chunks; //Stores terrain positions in units of terrain blocks (0, 2) is at (0, 2 * width)
+    public GameObject thermalPrefab;
 
 	class Chunk
     {
         public Terrain terrain;
         public float heat = 0f;
+        public Vector3 averageNormal = Vector3.zero;
 
         public Chunk() { }
         public Chunk(Terrain terrain) 
         {
             this.terrain = terrain;
+            for (int c = 0; c < 25; c++)
+                averageNormal += terrain.terrainData.GetInterpolatedNormal(Random.Range(0f, 1f), Random.Range(0f, 1f));
+            averageNormal = averageNormal.normalized;
         }
     }
 
 	void Start()
     {
-        UnityEngine.Random.InitState(System.DateTime.Now.Millisecond);
+        Random.InitState(System.DateTime.Now.Millisecond);
 		perlinOffset = Vector2.zero;
-		perlinOffset = new Vector2(UnityEngine.Random.Range(-20000000f, 20000000f), UnityEngine.Random.Range(-20000000f, 20000000f));
+		perlinOffset = new Vector2(Random.Range(-20000000f, 20000000f), Random.Range(-20000000f, 20000000f));
         chunks = new();
 		StartCoroutine(UpdateTerrain());
         sunUpdateDurationS = (dayMinutes * 60) / dayDivisions;
         StartCoroutine(UpdateSun());
+        StartCoroutine(UpdateWeather());
 	}
 
 	void FixedUpdate()
@@ -55,6 +63,39 @@ public class TerrainMaster : MonoBehaviour
 			yield return new WaitForSeconds(1f);
 		}
     }
+
+	IEnumerator UpdateWeather()
+	{
+		while (true)
+		{
+			foreach (var pair in chunks)
+            {
+                Chunk chunk = pair.Value;
+                Point point = pair.Key;
+                chunk.heat += Mathf.Clamp(Vector3.Dot(-sun.transform.forward, chunk.averageNormal), 0f, 1f) * 0.1f;
+
+                if (chunk.heat * 0.3f >= Random.Range(0f, 1f)) //may need more complicated chance
+                {
+                    Debug.Log(pair.Key); //replace with thermal generation
+                    float xNormed = Random.Range(0f, 1f);
+                    float zNormed = Random.Range(0f, 1f);
+                    Vector3 thermLocalPos = new Vector3(point.X * squareWidth + xNormed * squareWidth, 
+                        chunk.terrain.terrainData.GetInterpolatedHeight(xNormed, zNormed), 
+                        point.Y * squareWidth + zNormed * squareWidth);
+                    Debug.Log(thermLocalPos);
+					ThermalSampler newTherm = Instantiate(thermalPrefab, this.transform).GetComponent<ThermalSampler>();
+                    newTherm.transform.position = thermLocalPos;
+                    newTherm.cloudBaseHeight = height;
+                    //TODO: create thermal ownership
+                    newTherm.prevailingWind = Vector3.zero;
+                    newTherm.speed = 5f;
+
+					chunk.heat = 0f;
+				}
+            }
+			yield return new WaitForSeconds(10f);
+		}
+	}
 
 	IEnumerator UpdateSun()
 	{

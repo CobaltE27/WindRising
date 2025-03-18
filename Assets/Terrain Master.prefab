@@ -87,6 +87,7 @@ MonoBehaviour:
   sun: {fileID: 1017237339559540119}
   dayMinutes: 20
   dayDivisions: 720
+  thermalPrefab: {fileID: 8151960280685552904, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
 --- !u!1 &3178585944186436953
 GameObject:
   m_ObjectHideFlags: 0
