@@ -56,6 +56,8 @@ public class PlaneMovement : MonoBehaviour
     public Collider boundingBox;
     private Dictionary<Collider, WindSampler> windSamplers;
     public float wingLiftTorque;
+    public float rudderPos;
+    public float rudderStrength;
 
 	void Start()
     {
@@ -129,8 +131,12 @@ public class PlaneMovement : MonoBehaviour
         Vector3 tailBias = -rb.transform.up * tailBiasFactor * forwardAirspeedSquared;
         Vector3 centeringDir = ((Vector3.Dot(airDir, -rb.transform.forward)) * airDir - (-rb.transform.forward)).normalized;
         Vector3 tailForce = tailBias + centeringDir * forwardAirspeedSquared * tailCoeff * (1 - Mathf.Abs(Vector3.Dot(airDir, -rb.transform.forward)));
-        tailForce += rb.transform.up * forwardAirspeedSquared * tailElevatorPos * elevatorStrength;
-        rb.AddForceAtPosition(tailForce, tailPoint.position); //added on the back of the craft like force from tail/rudder, just removing actual backward drag component
+        float elevatorForce = forwardAirspeedSquared * tailElevatorPos * elevatorStrength;
+		tailForce += rb.transform.up * elevatorForce;
+        float rudderForce = forwardAirspeedSquared * rudderPos * rudderStrength;
+        tailForce += -rb.transform.right * rudderForce;
+        rb.AddForce(-rb.transform.forward * (elevatorForce + rudderForce) * controlDragCoeff);
+		rb.AddForceAtPosition(tailForce, tailPoint.position); //added on the back of the craft like force from tail/rudder, just removing actual backward drag component
         Debug.DrawRay(tailPoint.position, tailForce, Color.blue);
 
 		Debug.DrawRay(rb.position, accum, Color.black);
@@ -168,6 +174,16 @@ public class PlaneMovement : MonoBehaviour
 			eTarget -= 0.5f;
 		}
 		tailElevatorPos = tailElevatorPos + (eTarget - tailElevatorPos) * 0.1f;
+		float rudTarget = 0f;
+		if (Input.GetKey(KeyCode.E))
+		{
+			rudTarget += 0.5f;
+		}
+		if (Input.GetKey(KeyCode.Q))
+		{
+			rudTarget -= 0.5f;
+		}
+		rudderPos = rudderPos + (rudTarget - rudderPos) * 0.1f;
 	}
 
     void UpdateInstruments(Vector3 position, Vector3 velocity, float airspeed)
