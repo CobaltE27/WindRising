@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing; //for point struct
@@ -9,7 +10,6 @@ public class TerrainMaster : MonoBehaviour
     public Terrain baseTerrain;
     private Vector2 perlinOffset;
     public Transform playerTrans;
-    Dictionary<Point, Terrain> terrains; //Stores terrain positions in units of terrain blocks (0, 2) is at (0, 2 * width)
     public float squareWidth;
     public float height;
     public int renderRadius;
@@ -18,13 +18,26 @@ public class TerrainMaster : MonoBehaviour
     public float dayMinutes;
     public int dayDivisions;
     private float sunUpdateDurationS;
+    Dictionary<Point, Chunk> chunks; //Stores terrain positions in units of terrain blocks (0, 2) is at (0, 2 * width)
+
+	class Chunk
+    {
+        public Terrain terrain;
+        public float heat = 0f;
+
+        public Chunk() { }
+        public Chunk(Terrain terrain) 
+        {
+            this.terrain = terrain;
+        }
+    }
 
 	void Start()
     {
-        Random.InitState(System.DateTime.Now.Millisecond);
+        UnityEngine.Random.InitState(System.DateTime.Now.Millisecond);
 		perlinOffset = Vector2.zero;
-		perlinOffset = new Vector2(Random.Range(-20000000f, 20000000f), Random.Range(-20000000f, 20000000f));
-        terrains = new();
+		perlinOffset = new Vector2(UnityEngine.Random.Range(-20000000f, 20000000f), UnityEngine.Random.Range(-20000000f, 20000000f));
+        chunks = new();
 		StartCoroutine(UpdateTerrain());
         sunUpdateDurationS = (dayMinutes * 60) / dayDivisions;
         StartCoroutine(UpdateSun());
@@ -64,15 +77,16 @@ public class TerrainMaster : MonoBehaviour
 			for (int keyZ = playerCoords.Y - renderRadius; keyZ <= playerCoords.Y + renderRadius; keyZ++)
             {
                 Point potentialPoint = new Point(keyX, keyZ);
-                if (!terrains.TryGetValue(potentialPoint, out Terrain preExistingTerrain)) //if no terrain there currently
+                if (!chunks.TryGetValue(potentialPoint, out Chunk preExistingChunk)) //if no terrain there currently
                 {
-                    terrains.Add(potentialPoint, CreateAtKey(potentialPoint));
+                    Chunk newChunk = new(CreateAtKey(potentialPoint));
+                    chunks.Add(potentialPoint, newChunk);
                     terrChanged = true;
                 }
             }
         if (terrChanged)
             Terrain.SetConnectivityDirty();
-        //Unload outside terrains (aquired via .activeTerrains)
+        //Unload outside chunks (aquired via .activeTerrains)
 	}
 
     Terrain CreateAtKey(Point posKey)
@@ -83,29 +97,33 @@ public class TerrainMaster : MonoBehaviour
         newT.transform.position = PositionedAt(posKey);
 
         //Set new terrain's values
-        //generate and set terrainData
         SetDataFor(posKey, newT);
         newT.GetComponent<TerrainCollider>().terrainData = newT.terrainData;
+
         Terrain[] neighbors = new Terrain[4]; 
-        if (terrains.TryGetValue(new Point(posKey.X + 1, posKey.Y), out Terrain leftNeigh)) //+X
+        if (chunks.TryGetValue(new Point(posKey.X + 1, posKey.Y), out Chunk leftNeigh)) //+X
         {
-            leftNeigh.SetNeighbors(leftNeigh.leftNeighbor, leftNeigh.topNeighbor, newT, leftNeigh.bottomNeighbor);
-            neighbors[0] = leftNeigh;
+            Terrain leftN = leftNeigh.terrain;
+			leftN.SetNeighbors(leftN.leftNeighbor, leftN.topNeighbor, newT, leftN.bottomNeighbor);
+            neighbors[0] = leftN;
 		}
-		if (terrains.TryGetValue(new Point(posKey.X - 1, posKey.Y), out Terrain rightNeigh)) //-X
+		if (chunks.TryGetValue(new Point(posKey.X - 1, posKey.Y), out Chunk rightNeigh)) //-X
 		{
-			rightNeigh.SetNeighbors(newT, rightNeigh.topNeighbor, rightNeigh.rightNeighbor, rightNeigh.bottomNeighbor);
-			neighbors[2] = rightNeigh;
+            Terrain rightN = rightNeigh.terrain;
+			rightN.SetNeighbors(newT, rightN.topNeighbor, rightN.rightNeighbor, rightN.bottomNeighbor);
+			neighbors[2] = rightN;
 		}
-		if (terrains.TryGetValue(new Point(posKey.X, posKey.Y + 1), out Terrain topNeigh)) //+Z
+		if (chunks.TryGetValue(new Point(posKey.X, posKey.Y + 1), out Chunk topNeigh)) //+Z
 		{
-			topNeigh.SetNeighbors(topNeigh.leftNeighbor, topNeigh.topNeighbor, topNeigh.rightNeighbor, newT);
-			neighbors[1] = topNeigh;
+			Terrain topN = topNeigh.terrain;
+			topN.SetNeighbors(topN.leftNeighbor, topN.topNeighbor, topN.rightNeighbor, newT);
+			neighbors[1] = topN;
 		}
-		if (terrains.TryGetValue(new Point(posKey.X, posKey.Y - 1), out Terrain bottomNeigh)) //-Z
+		if (chunks.TryGetValue(new Point(posKey.X, posKey.Y - 1), out Chunk bottomNeigh)) //-Z
 		{
-			bottomNeigh.SetNeighbors(bottomNeigh.leftNeighbor, newT, bottomNeigh.rightNeighbor, bottomNeigh.bottomNeighbor);
-			neighbors[3] = bottomNeigh;
+            Terrain bottomN = bottomNeigh.terrain;
+			bottomN.SetNeighbors(bottomN.leftNeighbor, newT, bottomN.rightNeighbor, bottomN.bottomNeighbor);
+			neighbors[3] = bottomN;
 		}
 		newT.SetNeighbors(neighbors[0], neighbors[1], neighbors[2], neighbors[3]);
 		return newT;
