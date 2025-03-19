@@ -250,6 +250,10 @@ PrefabInstance:
       value: -46.9
       objectReference: {fileID: 0}
     - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
+      propertyPath: dayMinutes
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
       propertyPath: playerTrans
       value: 
       objectReference: {fileID: 811912121}

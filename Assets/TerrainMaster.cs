@@ -68,24 +68,31 @@ public class TerrainMaster : MonoBehaviour
 
 	IEnumerator UpdateWeather()
 	{
-        float period = 10f;
+        float period = dayMinutes / 2f;
+        float cutoff = 0.4f;
+        float releaseChance = 0.2f;
+        float minSpeed = 5f;
+        float maxSpeed = 25f;
+        float minDurationS = dayMinutes * 0.1f * 60f;
+        float maxDurationS = dayMinutes * 0.3f * 60f;
+        float succeedChance = 0.05f;
 		while (true)
 		{
 			foreach (var pair in chunks)
             {
                 Chunk chunk = pair.Value;
                 Point point = pair.Key;
+                float angleFactor = 
                 chunk.heat += Mathf.Clamp(Vector3.Dot(-sun.transform.forward, chunk.averageNormal), 0f, 1f) * 0.1f;
                 chunk.heat = Mathf.Clamp(chunk.heat, 0f, 1f);
 
                 if (chunk.thermal)
                 {
                     //update wind
-                    chunk.heat -= chunk.thermal.speed * 0.03f; //TODO: parameterize and make proportinal to more things
-					chunk.heat = Mathf.Clamp(chunk.heat, 0f, 1f);
+                    //TODO: add thermal release addition
 
 					chunk.thermalDur -= period;
-					if (chunk.thermalDur < 0 || chunk.heat <= 0.1f)
+					if (chunk.thermalDur < 0)
 					{
                         Destroy(chunk.thermal.gameObject);
                         chunk.thermal = null;
@@ -94,22 +101,35 @@ public class TerrainMaster : MonoBehaviour
 				}
                 else
                 {
-					if (chunk.heat * 0.1f >= Random.Range(0f, 1f)) //may need more complicated chance
+					if (releaseChance >= Random.Range(0f, 1f)) //may need more complicated chance
 					{
-						float xNormed = Random.Range(0f, 1f);
-						float zNormed = Random.Range(0f, 1f);
-						Vector3 thermLocalPos = new Vector3(point.X * squareWidth + xNormed * squareWidth,
-							chunk.terrain.terrainData.GetInterpolatedHeight(xNormed, zNormed),
-							point.Y * squareWidth + zNormed * squareWidth);
+                        if (chunk.heat <= cutoff)
+                        {
+                            chunk.heat = 0f;
+                            continue;
+                        }
 
-						ThermalSampler newTherm = Instantiate(thermalPrefab, this.transform).GetComponent<ThermalSampler>();
-						newTherm.transform.position = thermLocalPos;
-						newTherm.cloudBaseHeight = height;
-						newTherm.prevailingWind = Vector3.zero; //TODO: fill from simulation
-						//TODO: set thermal properties properly
-						newTherm.speed = 5f;
-                        chunk.thermal = newTherm;
-                        chunk.thermalDur = 100f;
+                        if (chunk.heat > cutoff && succeedChance > Random.Range(0f, 1f))
+                        {
+                            float xNormed = Random.Range(0f, 1f);
+                            float zNormed = Random.Range(0f, 1f);
+                            Vector3 thermLocalPos = new Vector3(point.X * squareWidth + xNormed * squareWidth,
+                                chunk.terrain.terrainData.GetInterpolatedHeight(xNormed, zNormed),
+                                point.Y * squareWidth + zNormed * squareWidth);
+
+                            ThermalSampler newTherm = Instantiate(thermalPrefab, this.transform).GetComponent<ThermalSampler>();
+                            newTherm.transform.position = thermLocalPos;
+                            newTherm.cloudBaseHeight = height;
+                            newTherm.prevailingWind = Vector3.zero; //TODO: fill from simulation
+
+                            //TODO: set thermal properties properly
+                            float strength = (chunk.heat - cutoff) / (1 - cutoff); //minimum heat above cutoff -> 0, max -> 1
+                            newTherm.speed = minSpeed + strength * (maxSpeed - minSpeed);
+                            chunk.thermal = newTherm;
+                            chunk.thermalDur = Random.Range(minDurationS, maxDurationS); 
+                        }
+
+                        chunk.heat = 0f;
 					}
 				}
             }
