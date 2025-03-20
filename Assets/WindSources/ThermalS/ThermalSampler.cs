@@ -10,6 +10,7 @@ public class ThermalSampler : WindSampler
 	public float speed = 0f;
 	public AnimationCurve strengthByDistance;
 	public Vector3 prevailingWind;
+	public Transform cloud;
 
 	void Start()
 	{
@@ -28,6 +29,11 @@ public class ThermalSampler : WindSampler
 			collider.height = length;
 		}
 		collider.center = new Vector3(0, collider.height / 2 - collider.radius, 0);
+
+		cloud.localPosition = Vector3.up * (collider.height - collider.radius);
+		Vector3 scale = cloud.localScale;
+		scale.Scale( new Vector3(1, speed / 10, 1));
+		cloud.localScale = scale;
 	}
 
 	/// <summary>
