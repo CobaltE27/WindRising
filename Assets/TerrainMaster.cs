@@ -16,6 +16,7 @@ public class TerrainMaster : MonoBehaviour
     public float height;
     public int renderRadius;
     public AnimationCurve broadBias;
+    public AnimationCurve erosionBias;
     public Light sun;
     public float dayMinutes;
     public int dayDivisions;
@@ -247,6 +248,8 @@ public class TerrainMaster : MonoBehaviour
         float broadFactor = broadBias.Evaluate(Mathf.PerlinNoise(broadScaledPos.x, broadScaledPos.z));
         Vector3 localScaledPos = perlinPosition / 800f;
         float localFactor = (150f / height) * Mathf.PerlinNoise(localScaledPos.x, localScaledPos.z);
-		return broadFactor + localFactor;
+        Vector3 erosionScaledPos = perlinPosition / 9000f;
+		float erosion = erosionBias.Evaluate(Mathf.PerlinNoise(erosionScaledPos.x, erosionScaledPos.z));
+		return (broadFactor + localFactor) * erosion;
     }
 }
