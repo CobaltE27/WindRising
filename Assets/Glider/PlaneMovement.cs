@@ -67,7 +67,7 @@ public class PlaneMovement : MonoBehaviour
     public float sustainerRegen;
     public float sustainerDrain;
     private float sustainerPosition;
-    private bool sustainerOn;
+    private bool sustainerOn = false;
     public float sustainerMaxSpeed;
 
 
@@ -163,7 +163,7 @@ public class PlaneMovement : MonoBehaviour
         float airBrakeForce = forwardAirspeedSquared * airBrakePos * airBrakeStrength;
 		accum += -rb.transform.forward * airBrakeForce;
 
-        float sustainerEffectiveness = Mathf.Clamp((sustainerMaxSpeed - Mathf.Sqrt(forwardAirspeedSquared)) / sustainerMaxSpeed, 0f, 1f);
+        float sustainerEffectiveness = Mathf.Clamp((sustainerMaxSpeed - Mathf.Sqrt(Mathf.Max(forwardAirspeedSquared, 0))) / sustainerMaxSpeed, 0f, 1f);
         float sustainerForce = sustainerEffectiveness * sustainerPosition * sustainerStrength;
         accum += rb.transform.forward * sustainerForce;
 
@@ -173,7 +173,19 @@ public class PlaneMovement : MonoBehaviour
         windNoise.SetWindNoise(airVel);
     }
 
-    void InterpretControls() //Use WASD to control elevator and ailerons
+	private void Update()
+	{
+		if (Input.GetKeyDown(KeyCode.Space) && sustainerBattery > 0)
+        {
+            sustainerOn = !sustainerOn;
+        }
+        else if (sustainerBattery <= 0.1f)
+        {
+            sustainerOn = false;
+        }
+	}
+
+	void InterpretControls() //Use WASD to control elevator and ailerons
     {
         //targets are in terms of upward force applied to part of craft, not actual angle of flaps
         //aileron control
@@ -219,9 +231,8 @@ public class PlaneMovement : MonoBehaviour
 		}
 		airBrakePos = airBrakePos + (abTarget - airBrakePos) * 0.1f;
         float susTarget = 0f;
-        if (Input.GetKey(KeyCode.Space) && sustainerBattery > 0)
+        if (sustainerOn)
         {
-            Debug.Log("space!");
             susTarget = 1f;
             sustainerBattery -= Time.deltaTime * sustainerDrain;
         }

@@ -22,7 +22,6 @@ public class InstrumentController : MonoBehaviour
 	bool radioOn = false;
 	public AudioSource radioSpeaker;
 	public GameObject sustainerBar;
-	public 
 	// Start is called before the first frame update
 	void Start()
     {
