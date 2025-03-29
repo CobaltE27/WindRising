@@ -61,11 +61,21 @@ public class PlaneMovement : MonoBehaviour
     public float rudderStrength;
     public float airBrakePos;
     public float airBrakeStrength;
+	public float sustainerBatteryMax;
+	public float sustainerBattery;
+    public float sustainerStrength;
+    public float sustainerRegen;
+    public float sustainerDrain;
+    private float sustainerPosition;
+    private bool sustainerOn;
+    public float sustainerMaxSpeed;
+
 
 	void Start()
     {
         rb.velocity = rb.transform.forward * startingSpeed;
         windSamplers = new();
+        sustainerBattery = sustainerBatteryMax;
     }
 
     // Update is called once per frame
@@ -153,6 +163,10 @@ public class PlaneMovement : MonoBehaviour
         float airBrakeForce = forwardAirspeedSquared * airBrakePos * airBrakeStrength;
 		accum += -rb.transform.forward * airBrakeForce;
 
+        float sustainerEffectiveness = Mathf.Clamp((sustainerMaxSpeed - Mathf.Sqrt(forwardAirspeedSquared)) / sustainerMaxSpeed, 0f, 1f);
+        float sustainerForce = sustainerEffectiveness * sustainerPosition * sustainerStrength;
+        accum += rb.transform.forward * sustainerForce;
+
 		Debug.DrawRay(rb.position, accum, Color.black);
 		rb.AddForce(accum);
 
@@ -204,6 +218,17 @@ public class PlaneMovement : MonoBehaviour
 			abTarget += 0.5f;
 		}
 		airBrakePos = airBrakePos + (abTarget - airBrakePos) * 0.1f;
+        float susTarget = 0f;
+        if (Input.GetKey(KeyCode.Space) && sustainerBattery > 0)
+        {
+            Debug.Log("space!");
+            susTarget = 1f;
+            sustainerBattery -= Time.deltaTime * sustainerDrain;
+        }
+        else
+            sustainerBattery += Time.deltaTime * sustainerRegen;
+        sustainerBattery = Mathf.Clamp(sustainerBattery, 0f, sustainerBatteryMax);
+        sustainerPosition = sustainerPosition + (susTarget - sustainerPosition) * 0.1f;
 	}
 
     void UpdateInstruments(Vector3 position, Vector3 velocity, float airspeed)
@@ -213,6 +238,7 @@ public class PlaneMovement : MonoBehaviour
         instruments.UpdateVariometer(velocity, position);
         instruments.UpdateAltimeter(position.y);
         instruments.UpdateRatio(position);
+        instruments.UpdateBatteryBar(sustainerBattery, sustainerBatteryMax);
 	}
 	void OnTriggerEnter(Collider other)
 	{

@@ -21,6 +21,8 @@ public class InstrumentController : MonoBehaviour
 	public string playlistPath;
 	bool radioOn = false;
 	public AudioSource radioSpeaker;
+	public GameObject sustainerBar;
+	public 
 	// Start is called before the first frame update
 	void Start()
     {
@@ -145,5 +147,10 @@ public class InstrumentController : MonoBehaviour
 			oldPos = position;
 			ratio.text = "-:-";
 		}
+	}
+
+	public void UpdateBatteryBar(float current, float max)
+	{
+		sustainerBar.transform.localScale = new Vector3(current / max, 1, 1);
 	}
 }
