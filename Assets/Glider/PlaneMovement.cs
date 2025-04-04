@@ -69,6 +69,7 @@ public class PlaneMovement : MonoBehaviour
     private float sustainerPosition;
     private bool sustainerOn = false;
     public float sustainerMaxSpeed;
+    public float lockupSpeed;
 
 
 	void Start()
@@ -134,13 +135,18 @@ public class PlaneMovement : MonoBehaviour
 		accum += glideForce;
 		Debug.DrawRay(rb.position, glideForce, Color.magenta);
 
+        float lockupSpeedSquared = Mathf.Pow(lockupSpeed, 2);
+		float lockupLoss = 1 - ((forwardAirspeedSquared - lockupSpeedSquared) / lockupSpeedSquared);
+        lockupLoss = Mathf.Clamp(lockupLoss, 0, 1);
+        Debug.Log(lockupLoss);
+
         Vector3 wingOffset = -0.1f * rb.transform.forward;
 		Vector3 rightLift = rb.transform.up * (forwardAirspeedSquared * (0.5f * wingAreaFactor) * liftCoeff); //lift proportional to wing area, aerofoil lift coeff, and forward airspeed
-        float rAileronForce = rAileronPos * forwardAirspeedSquared * aileronStrength; //account for aileron lift
+        float rAileronForce = rAileronPos * forwardAirspeedSquared * aileronStrength * lockupLoss; //account for aileron lift
 		rightLift += rb.transform.up * rAileronForce; 
 		rb.AddForceAtPosition(rightLift, rightTip.position + wingOffset); //wing center of lift is generally behind
 		Vector3 leftLift = rb.transform.up * (forwardAirspeedSquared * (0.5f * wingAreaFactor) * liftCoeff);
-		float lAileronForce = lAileronPos * forwardAirspeedSquared * aileronStrength;
+		float lAileronForce = lAileronPos * forwardAirspeedSquared * aileronStrength * lockupLoss;
 		leftLift += rb.transform.up * lAileronForce;
 		rb.AddForceAtPosition(leftLift, leftTip.position + wingOffset);
 		Debug.DrawRay(rightTip.position, rightLift, Color.cyan);
@@ -152,9 +158,9 @@ public class PlaneMovement : MonoBehaviour
         Vector3 tailBias = -rb.transform.up * tailBiasFactor * forwardAirspeedSquared;
         Vector3 centeringDir = ((Vector3.Dot(airDir, -rb.transform.forward)) * airDir - (-rb.transform.forward)).normalized;
         Vector3 tailForce = tailBias + centeringDir * forwardAirspeedSquared * tailCoeff * (1 - Mathf.Abs(Vector3.Dot(airDir, -rb.transform.forward)));
-        float elevatorForce = forwardAirspeedSquared * tailElevatorPos * elevatorStrength;
+        float elevatorForce = forwardAirspeedSquared * tailElevatorPos * elevatorStrength * lockupLoss;
 		tailForce += rb.transform.up * elevatorForce;
-        float rudderForce = forwardAirspeedSquared * rudderPos * rudderStrength;
+        float rudderForce = forwardAirspeedSquared * rudderPos * rudderStrength * lockupLoss;
         tailForce += -rb.transform.right * rudderForce;
         rb.AddForce(-rb.transform.forward * (elevatorForce + rudderForce) * controlDragCoeff);
 		rb.AddForceAtPosition(tailForce, tailPoint.position); //added on the back of the craft like force from tail/rudder, just removing actual backward drag component
