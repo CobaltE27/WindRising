@@ -77,7 +77,10 @@ public class PlaneMovement : MonoBehaviour
         rb.velocity = rb.transform.forward * startingSpeed;
         windSamplers = new();
         sustainerBattery = sustainerBatteryMax;
-    }
+        //set intertia to that of unit cube collider, which values were tuned for
+        rb.inertiaTensor = new Vector3(1.67f, 1.67f, 1.67f);
+        rb.inertiaTensorRotation = new Quaternion(0, 0, 0, 1);
+	}
 
     // Update is called once per frame
     void FixedUpdate()
@@ -138,7 +141,7 @@ public class PlaneMovement : MonoBehaviour
         float lockupSpeedSquared = Mathf.Pow(lockupSpeed, 2);
 		float lockupLoss = 1 - ((forwardAirspeedSquared - lockupSpeedSquared) / lockupSpeedSquared);
         lockupLoss = Mathf.Clamp(lockupLoss, 0, 1);
-        Debug.Log(lockupLoss);
+        //Debug.Log(lockupLoss);
 
         Vector3 wingOffset = -0.1f * rb.transform.forward;
 		Vector3 rightLift = rb.transform.up * (forwardAirspeedSquared * (0.5f * wingAreaFactor) * liftCoeff); //lift proportional to wing area, aerofoil lift coeff, and forward airspeed
