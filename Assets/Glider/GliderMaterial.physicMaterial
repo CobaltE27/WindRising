@@ -7,7 +7,7 @@ PhysicMaterial:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: GliderMaterial
-  dynamicFriction: 0.001
+  dynamicFriction: 0.01
   staticFriction: 0.01
   bounciness: 0.2
   frictionCombine: 0

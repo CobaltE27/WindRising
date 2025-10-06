@@ -257,7 +257,8 @@ public class PlaneMovement : MonoBehaviour
         instruments.UpdateAbsoluteSpeed(velocity.magnitude);
         instruments.UpdateVariometer(velocity, position);
         instruments.UpdateAltimeter(position.y);
-        instruments.UpdateRatio(position);
+        instruments.UpdateRadarAltimeter(position);
+		instruments.UpdateRatio(position);
         instruments.UpdateBatteryBar(sustainerBattery, sustainerBatteryMax);
 	}
 	void OnTriggerEnter(Collider other)

@@ -10,6 +10,7 @@ public class InstrumentController : MonoBehaviour
 {
 	public TMP_Text airspeed;
 	public TMP_Text altimeter;
+	public TMP_Text radarAltimeter;
 	public TMP_Text absoluteSpeed;
 	public TMP_Text variometer;
 	public TMP_Text ratio;
@@ -60,17 +61,28 @@ public class InstrumentController : MonoBehaviour
 
 	public void UpdateAirspeed(float value)
     {
-		airspeed.text = value.ToString("n1") + "\nm/s";
+		airspeed.text = value.ToString("n1") + " m/s\u2248";
     }
 
 	public void UpdateAltimeter(float value)
 	{
-		altimeter.text = MathF.Truncate(value) + "\nm";
+		altimeter.text = MathF.Truncate(value) + " m";
+	}
+
+	public void UpdateRadarAltimeter(Vector3 position)
+	{
+		RaycastHit hitInfo;
+		if (Physics.Raycast(position, Vector3.down, out hitInfo, 10000))
+		{
+			radarAltimeter.text = "\u2193" + MathF.Truncate(hitInfo.distance) + " m";
+		}
+		else
+			radarAltimeter.text = "\u21930 m";
 	}
 
 	public void UpdateAbsoluteSpeed(float value)
 	{
-		absoluteSpeed.text = value.ToString("n1") + "\nm/s";
+		absoluteSpeed.text = value.ToString("n1") + " m/s";
 	}
 
 	//provide value as m/s
