@@ -23,6 +23,9 @@ public class TerrainMaster : MonoBehaviour
     private float sunUpdateDurationS;
     Dictionary<Point, Chunk> chunks; //Stores terrain positions in units of terrain blocks (0, 2) is at (0, 2 * width)
     public GameObject thermalPrefab;
+    public GameObject airportPrefab;
+    Dictionary<Point, GameObject> airports;
+    public int airportSpread;
 
 	class Chunk
     {
@@ -48,6 +51,7 @@ public class TerrainMaster : MonoBehaviour
 		perlinOffset = Vector2.zero;
 		perlinOffset = new Vector2(Random.Range(-20000000f, 20000000f), Random.Range(-20000000f, 20000000f));
         chunks = new();
+        airports = new();
 		StartCoroutine(UpdateTerrain());
         sunUpdateDurationS = (dayMinutes * 60) / dayDivisions;
         StartCoroutine(UpdateSun());
@@ -163,6 +167,38 @@ public class TerrainMaster : MonoBehaviour
                 {
                     Chunk newChunk = new(CreateAtKey(potentialPoint));
                     chunks.Add(potentialPoint, newChunk);
+                    Debug.Log(Vector3.Dot(newChunk.averageNormal, Vector3.up));
+                    if (Vector3.Dot(newChunk.averageNormal, Vector3.up) >= 0.99)
+                    {
+                        bool tooClose = false;
+                        foreach (Point airportPoint in airports.Keys)
+                        {
+                            var dist = Math.Abs(airportPoint.X - potentialPoint.X) + Math.Abs(airportPoint.Y - potentialPoint.Y);
+                            if (dist < airportSpread)
+                            {
+                                tooClose = true;
+                                break;
+                            }
+                        }
+                        if (!tooClose)
+                        {
+							Vector3 candidateLoc = new(potentialPoint.X * squareWidth + 0.5f * squareWidth, 0, potentialPoint.Y * squareWidth + 0.5f * squareWidth);
+                            GameObject newAirp = Instantiate(airportPrefab, this.transform);
+							newAirp.gameObject.name = "Airport(x:" + potentialPoint.X + ", z:" + potentialPoint.Y + ")";
+							newAirp.gameObject.SetActive(true);
+							float spawnHeight = 0;
+                            if (Physics.Raycast(candidateLoc + Vector3.up * height, Vector3.down, out RaycastHit heightTest, 1.1f * height))
+                            {
+								spawnHeight = height - heightTest.distance + 5f;
+                            }
+                            newAirp.transform.position = candidateLoc + Vector3.up * spawnHeight;
+							if (airports.Count == 0) //first airport, spawn plane
+							{
+
+							}
+                            airports.Add(potentialPoint, newAirp);
+						}
+                    }
                     terrChanged = true;
                 }
             }

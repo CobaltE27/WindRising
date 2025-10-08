@@ -265,7 +265,7 @@ public class PlaneMovement : MonoBehaviour
 	{
         WindSampler? otherSampler = other.gameObject.GetComponent<WindSampler>();
 		if (otherSampler)
-            windSamplers.Add(other, otherSampler);
+            windSamplers.TryAdd(other, otherSampler);
 	}
 
 	void OnTriggerExit(Collider other)
