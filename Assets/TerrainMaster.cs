@@ -26,6 +26,7 @@ public class TerrainMaster : MonoBehaviour
     public GameObject airportPrefab;
     Dictionary<Point, GameObject> airports;
     public int airportSpread;
+    public GameObject planePrefab;
 
 	class Chunk
     {
@@ -167,8 +168,7 @@ public class TerrainMaster : MonoBehaviour
                 {
                     Chunk newChunk = new(CreateAtKey(potentialPoint));
                     chunks.Add(potentialPoint, newChunk);
-                    Debug.Log(Vector3.Dot(newChunk.averageNormal, Vector3.up));
-                    if (Vector3.Dot(newChunk.averageNormal, Vector3.up) >= 0.99)
+                    if (Vector3.Dot(newChunk.averageNormal, Vector3.up) >= 0.999)
                     {
                         bool tooClose = false;
                         foreach (Point airportPoint in airports.Keys)
@@ -189,12 +189,17 @@ public class TerrainMaster : MonoBehaviour
 							float spawnHeight = 0;
                             if (Physics.Raycast(candidateLoc + Vector3.up * height, Vector3.down, out RaycastHit heightTest, 1.1f * height))
                             {
-								spawnHeight = height - heightTest.distance + 5f;
+								spawnHeight = height - heightTest.distance + 10f; //spawn 10 above the ground
                             }
                             newAirp.transform.position = candidateLoc + Vector3.up * spawnHeight;
 							if (airports.Count == 0) //first airport, spawn plane
 							{
-
+								GameObject newPlane = Instantiate(planePrefab, newAirp.transform);// parent at first to make positioning easier
+                                newPlane.transform.localPosition = new Vector3(0, 2, -190);
+								newPlane.gameObject.name = "Plane";
+                                newPlane.transform.parent = null; //be free!
+                                playerTrans = newPlane.transform;
+								newPlane.gameObject.SetActive(true);
 							}
                             airports.Add(potentialPoint, newAirp);
 						}

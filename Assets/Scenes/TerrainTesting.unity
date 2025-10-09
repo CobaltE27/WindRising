@@ -184,11 +184,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 00e1dd6d13421d2418cbb0185030110a, type: 3}
---- !u!4 &897175910 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 286077555463344924, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
-  m_PrefabInstance: {fileID: 1338298984}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1338298984
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -247,7 +242,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3908729247863725499, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7777110950054874001, guid: 81ac133808691fa4291721fff7620aa9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -318,10 +313,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: -46.9
       objectReference: {fileID: 0}
-    - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
-      propertyPath: playerTrans
-      value: 
-      objectReference: {fileID: 897175910}
     - target: {fileID: 6028547253188404718, guid: b79d0acd4a2bb114ba4808888e12d87f, type: 3}
       propertyPath: renderRadius
       value: 10
