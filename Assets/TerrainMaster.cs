@@ -195,7 +195,7 @@ public class TerrainMaster : MonoBehaviour
 							if (airports.Count == 0) //first airport, spawn plane
 							{
 								GameObject newPlane = Instantiate(planePrefab, newAirp.transform);// parent at first to make positioning easier
-                                newPlane.transform.localPosition = new Vector3(0, 2, -190);
+                                newPlane.transform.localPosition = new Vector3(0, 2, -150);
 								newPlane.gameObject.name = "Plane";
                                 newPlane.transform.parent = null; //be free!
                                 playerTrans = newPlane.transform;

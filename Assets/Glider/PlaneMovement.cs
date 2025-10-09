@@ -70,7 +70,7 @@ public class PlaneMovement : MonoBehaviour
     private bool sustainerOn = false;
     public float sustainerMaxSpeed;
     public float lockupSpeed;
-
+    public Collider landingCollider; //whichever collider will contact the ground when landing
 
 	void Start()
     {
@@ -187,11 +187,22 @@ public class PlaneMovement : MonoBehaviour
 		if (Input.GetKeyDown(KeyCode.Space) && sustainerBattery > 0)
         {
             sustainerOn = !sustainerOn;
+
         }
         else if (sustainerBattery <= 0.1f)
         {
             sustainerOn = false;
-        }
+		}
+        if (sustainerOn)
+        {
+			landingCollider.sharedMaterial.dynamicFriction = 0.01f;
+			landingCollider.sharedMaterial.staticFriction = 0.01f;
+		}
+        else
+        {
+			landingCollider.sharedMaterial.dynamicFriction = 0.1f;
+			landingCollider.sharedMaterial.staticFriction = 0.2f;
+		}
 	}
 
 	void InterpretControls() //Use WASD to control elevator and ailerons
@@ -234,7 +245,7 @@ public class PlaneMovement : MonoBehaviour
 		}
 		rudderPos = rudderPos + (rudTarget - rudderPos) * 0.1f;
 		float abTarget = 0f;
-		if (Input.GetKey(KeyCode.X))
+		if (Input.GetKey(KeyCode.LeftShift))
 		{
 			abTarget += 0.5f;
 		}
