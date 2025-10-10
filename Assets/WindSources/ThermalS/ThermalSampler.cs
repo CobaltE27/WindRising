@@ -8,9 +8,12 @@ public class ThermalSampler : WindSampler
 	public float radius;
 	public float cloudBaseHeight;
 	public float speed = 0f;
+	public float idealSpeed = 0f;
+	Vector3 idealScale;
 	public AnimationCurve strengthByDistance;
 	public Vector3 prevailingWind;
 	public Transform cloud;
+	public bool dying;
 
 	void Start()
 	{
@@ -19,7 +22,7 @@ public class ThermalSampler : WindSampler
 		float length = (cloudBaseHeight - transform.position.y) + 2 * collider.radius;
 		if (horiWind.magnitude != 0)
 		{
-			float slope = speed / horiWind.magnitude;
+			float slope = idealSpeed / horiWind.magnitude;
 			float slopeAngle = Mathf.Atan(slope);
 			collider.height = length / Mathf.Sin(slopeAngle);
 			transform.Rotate(90 - Mathf.Rad2Deg * slopeAngle, Vector3.SignedAngle(transform.forward, horiWind, Vector3.up), 0);
@@ -29,11 +32,11 @@ public class ThermalSampler : WindSampler
 			collider.height = length;
 		}
 		collider.center = new Vector3(0, collider.height / 2 - collider.radius, 0);
-
 		cloud.localPosition = Vector3.up * (collider.height - collider.radius);
-		Vector3 scale = cloud.localScale;
-		scale.Scale( new Vector3(1, speed / 10, 1));
-		cloud.localScale = scale;
+		cloud.localScale = Vector3.zero;
+		idealScale = new Vector3(collider.radius * 2, collider.radius * 0.75f, collider.radius * 2);
+		dying = false;
+		SetSpeed(idealSpeed);
 	}
 
 	/// <summary>
@@ -48,5 +51,30 @@ public class ThermalSampler : WindSampler
 		Vector3 closestPoint = transform.position + dir * Vector3.Dot(centerToPoint, dir);
 		float horizontalDist = Vector3.Distance(closestPoint, position);
 		return Vector3.up * speed * strengthByDistance.Evaluate(horizontalDist / radius);
+	}
+
+	public void SetSpeed(float newSpeed, float duration = 20f)
+	{
+		StartCoroutine(AdjustSpeedTo(newSpeed, duration));
+	}
+
+	IEnumerator AdjustSpeedTo(float newSpeed, float duration)
+	{
+		float oldSpeed = speed;
+		float framesNeeded = duration / Time.fixedDeltaTime;
+		float iterSpeedDelta = (newSpeed - oldSpeed) / framesNeeded;
+		Vector3 finalScale = idealScale;
+		finalScale.Scale(new Vector3(1, newSpeed / 10, 1));
+		if (newSpeed <= 0f)
+			finalScale = Vector3.zero;
+		Vector3 iterScaleDelta = (finalScale - cloud.localScale) / framesNeeded;
+		for (int c = 0; c < framesNeeded; c++)
+		{
+			speed += iterSpeedDelta;
+			cloud.localScale += iterScaleDelta;
+			yield return new WaitForFixedUpdate();
+		}
+		speed = newSpeed;
+		cloud.localScale = finalScale;
 	}
 }

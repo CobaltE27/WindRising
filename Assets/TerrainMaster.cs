@@ -100,9 +100,17 @@ public class TerrainMaster : MonoBehaviour
 					chunk.thermalDur -= period;
 					if (chunk.thermalDur < 0)
 					{
-                        Destroy(chunk.thermal.gameObject);
-                        chunk.thermal = null;
-                        chunk.thermalDur = 0f;
+                        if (!chunk.thermal.dying)
+                        {
+							chunk.thermal.SetSpeed(0f);
+                            chunk.thermal.dying = true;
+						}
+                        if (chunk.thermal.speed <= 0f && chunk.thermal.dying)
+                        {
+							Destroy(chunk.thermal.gameObject);
+							chunk.thermal = null;
+							chunk.thermalDur = 0f;
+						}
 					}
 				}
                 else
@@ -130,7 +138,8 @@ public class TerrainMaster : MonoBehaviour
 
                             //TODO: set thermal properties properly
                             float strength = (chunk.heat - cutoff) / (1 - cutoff); //minimum heat above cutoff -> 0, max -> 1
-                            newTherm.speed = minSpeed + strength * (maxSpeed - minSpeed);
+                            newTherm.idealSpeed = minSpeed + strength * (maxSpeed - minSpeed);
+                            newTherm.speed = 0f;
                             chunk.thermal = newTherm;
                             chunk.thermalDur = Random.Range(minDurationS, maxDurationS); 
                         }

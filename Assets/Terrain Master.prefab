@@ -128,7 +128,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   sun: {fileID: 1017237339559540119}
   dayMinutes: 20
-  dayDivisions: 720
+  dayDivisions: 3600
   thermalPrefab: {fileID: 8151960280685552904, guid: fce68b8d944d7d24db9e1da7340eb34d, type: 3}
   airportPrefab: {fileID: 653704342503542225, guid: 00e1dd6d13421d2418cbb0185030110a, type: 3}
   airportSpread: 30
