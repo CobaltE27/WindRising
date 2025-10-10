@@ -118,7 +118,7 @@ public class PlaneMovement : MonoBehaviour
 		Vector3 accum = rb.GetAccumulatedForce(); //initialize forces, should basically always be 0
         //Debug.Log(accum);
 
-		UpdateInstruments(rb.position, vel, Vector3.Dot(rb.transform.forward, -airDir) * airVel.magnitude);
+		UpdateInstruments(rb.position, vel, Vector3.Dot(rb.transform.forward, -airDir) * airVel.magnitude, sampledWind.y);
 
 		Debug.DrawRay(rb.position, facing);
 		accum += gravity * rb.mass; //apply gravity
@@ -262,11 +262,11 @@ public class PlaneMovement : MonoBehaviour
         sustainerPosition = sustainerPosition + (susTarget - sustainerPosition) * 0.1f;
 	}
 
-    void UpdateInstruments(Vector3 position, Vector3 velocity, float airspeed)
+    void UpdateInstruments(Vector3 position, Vector3 velocity, float airspeed, float liftSpeed)
     {
         instruments.UpdateAirspeed(airspeed);
         instruments.UpdateAbsoluteSpeed(velocity.magnitude);
-        instruments.UpdateVariometer(velocity, position);
+        instruments.UpdateVariometer(velocity, position, liftSpeed);
         instruments.UpdateAltimeter(position.y);
         instruments.UpdateRadarAltimeter(position);
 		instruments.UpdateRatio(position);

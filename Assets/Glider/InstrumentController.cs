@@ -86,41 +86,34 @@ public class InstrumentController : MonoBehaviour
 	}
 
 	//provide value as m/s
-	Vector3 oldVelocity = Vector3.zero;
 	Vector3 oldPosition = Vector3.zero;
 	bool hasOldVario = false;
-	public void UpdateVariometer(Vector3 velocity, Vector3 position)
+	public void UpdateVariometer(Vector3 velocity, Vector3 position, float liftSpeed)
 	{
 		if (!hasOldVario)
 		{
-			oldVelocity = velocity;
 			oldPosition = position;
 			hasOldVario = true;
 			return;
 		}
-
 		float deltaH = (position.y - oldPosition.y) / Time.deltaTime;
-		float deltaV = (velocity.magnitude - oldVelocity.magnitude) / Time.deltaTime;
-		//print("delH:" + deltaH + " delV:" + deltaV);
-		float compensatedClimb = deltaH +  deltaV * Mathf.Abs(deltaV) / (2 * Physics.gravity.magnitude);//delta energy / mg
-		oldVelocity = velocity;
 		oldPosition = position;
 
-		variometer.text = compensatedClimb.ToString("n2") + "\nm/s";
+		variometer.text = liftSpeed.ToString("n2") + "\nm/s";
 		climb.text = deltaH.ToString("n2") + " m/s";
-		if (compensatedClimb >= 0)
+		if (liftSpeed >= 0)
 		{
-			float normedSub = (1 - Mathf.Min(1, compensatedClimb / 5)) * 0.5f;
+			float normedSub = (1 - Mathf.Min(1, liftSpeed / 5)) * 0.5f;
 			variometer.color = new Color(normedSub, 1, normedSub, 1);
-			varioSpeaker.pitch = 0.5f + compensatedClimb * varioPitchSensitivity;
+			varioSpeaker.pitch = 0.5f + liftSpeed * varioPitchSensitivity;
 		}
 		else
 		{
-			float normedSub = (1 - Mathf.Min(1, -compensatedClimb / 5)) * 0.5f;
+			float normedSub = (1 - Mathf.Min(1, -liftSpeed / 5)) * 0.5f;
 			variometer.color = new Color(1, normedSub, normedSub, 1);
 			varioSpeaker.pitch = 1;
 		}
-		varioSpeaker.volume = varioVolCurve.Evaluate(compensatedClimb / 8f) * 0.4f; //6 m/s is typically a really good climb
+		varioSpeaker.volume = varioVolCurve.Evaluate(liftSpeed / 8f) * 0.4f; //6 m/s is typically a really good climb
 	}
 
 	Vector3 oldPos = Vector3.zero;
